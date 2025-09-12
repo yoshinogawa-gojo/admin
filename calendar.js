@@ -48,65 +48,7 @@ function getMenuColorSafe(menuName) {
     return '#ff6b35'; // オレンジ色をデフォルトとする
 }
 
-// シフトデータ取得関数の修正版（複数のソースから取得を試行）
-function getShiftForDateFixed(dateString) {
-    try {
-        // デバッグログ出力
-        console.log(`[カレンダー] シフト取得開始: ${dateString}`);
-        
-        // 1. window.getShiftForDate が定義されている場合はそれを使用
-        if (typeof window.getShiftForDate === 'function') {
-            const result1 = window.getShiftForDate(dateString);
-            console.log(`[カレンダー] window.getShiftForDate結果:`, result1);
-            if (result1 && result1.length > 0) {
-                return result1;
-            }
-        }
-        
-        // 2. window.shiftData から直接取得
-        if (typeof window !== 'undefined' && window.shiftData && typeof window.shiftData === 'object') {
-            const result2 = window.shiftData[dateString] || [];
-            console.log(`[カレンダー] window.shiftData結果:`, result2);
-            if (result2 && result2.length > 0) {
-                return result2;
-            }
-        }
-        
-        // 3. グローバルのshiftDataから取得
-        if (typeof shiftData !== 'undefined' && shiftData && typeof shiftData === 'object') {
-            const result3 = shiftData[dateString] || [];
-            console.log(`[カレンダー] グローバルshiftData結果:`, result3);
-            if (result3 && result3.length > 0) {
-                return result3;
-            }
-        }
-        
-        // 4. ローカルストレージから取得を試行
-        try {
-            const savedShiftData = localStorage.getItem('shiftData');
-            if (savedShiftData) {
-                const parsedShiftData = JSON.parse(savedShiftData);
-                if (parsedShiftData && parsedShiftData[dateString]) {
-                    const result4 = parsedShiftData[dateString];
-                    console.log(`[カレンダー] localStorage結果:`, result4);
-                    return result4;
-                }
-            }
-        } catch (storageError) {
-            console.warn('ローカルストレージからのシフトデータ取得エラー:', storageError);
-        }
-        
-        // 5. すべて失敗した場合は空配列を返す
-        console.log(`[カレンダー] ${dateString}のシフトデータなし`);
-        return [];
-        
-    } catch (error) {
-        console.error('シフトデータ取得エラー:', error);
-        return [];
-    }
-}
-
-// カレンダー描画（シフト情報表示対応版）- 修正版
+// カレンダー描画（簡素化版）
 function renderCalendar() {
     if (!calendarGrid) return;
     
@@ -139,25 +81,6 @@ function renderCalendar() {
         calendarGrid.appendChild(dayHeader);
     });
     
-    // シフトデータの存在確認
-    let hasShiftData = false;
-    try {
-        hasShiftData = (window.shiftData && Object.keys(window.shiftData).length > 0) ||
-                      (typeof shiftData !== 'undefined' && shiftData && Object.keys(shiftData).length > 0) ||
-                      (localStorage.getItem('shiftData') !== null);
-        console.log(`[カレンダー] シフトデータ存在確認: ${hasShiftData}`);
-        
-        // デバッグ用：利用可能なシフトデータを確認
-        if (window.shiftData) {
-            console.log('[カレンダー] window.shiftData:', Object.keys(window.shiftData).slice(0, 5));
-        }
-        if (typeof shiftData !== 'undefined' && shiftData) {
-            console.log('[カレンダー] グローバルshiftData:', Object.keys(shiftData).slice(0, 5));
-        }
-    } catch (e) {
-        console.warn('[カレンダー] シフトデータ確認エラー:', e);
-    }
-    
     // カレンダー日付生成
     const currentDateObj = new Date(startDate);
     for (let i = 0; i < 42; i++) {
@@ -179,7 +102,7 @@ function renderCalendar() {
             dayElement.classList.add('holiday');
         }
         
-        // 日付ヘッダー部分（日付番号とシフト情報を横並び）
+        // 日付ヘッダー部分（日付番号のみ）
         const dayHeader = document.createElement('div');
         dayHeader.className = 'day-header';
         
@@ -197,41 +120,6 @@ function renderCalendar() {
         }
         
         dayHeader.appendChild(dayNumberElement);
-        
-        // シフト情報表示（休業日以外）
-        if (!holidays || !holidays.includes(dateString)) {
-            const shiftInfoElement = document.createElement('div');
-            shiftInfoElement.className = 'day-shift-info';
-            
-            // 修正：シフトデータを取得（複数の方法で試行）
-            let shiftEmployees = [];
-            
-            if (hasShiftData) {
-                shiftEmployees = getShiftForDateFixed(dateString);
-                console.log(`[カレンダー] ${dateString}のシフト従業員:`, shiftEmployees);
-            }
-            
-            // シフト情報が存在する場合のみ表示
-            if (shiftEmployees && shiftEmployees.length > 0) {
-                shiftEmployees.forEach(employee => {
-                    const employeeElement = document.createElement('div');
-                    employeeElement.className = 'shift-employee';
-                    
-                    // 表示テキスト（従業員名のみ）
-                    const employeeName = employee.name || employee;
-                    employeeElement.textContent = employeeName;
-                    employeeElement.title = `担当: ${employeeName}`; // ツールチップ
-                    
-                    console.log(`[カレンダー] シフト従業員追加: ${employeeName}`);
-                    shiftInfoElement.appendChild(employeeElement);
-                });
-            } else {
-                console.log(`[カレンダー] ${dateString}: シフト従業員なし`);
-            }
-            
-            dayHeader.appendChild(shiftInfoElement);
-        }
-        
         dayElement.appendChild(dayHeader);
         
         // 予約リスト表示（休止時間対応版）
