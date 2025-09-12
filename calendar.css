@@ -1,0 +1,1214 @@
+/* 予約休止時間表示 */
+.reservation-item-calendar.blocked-time {
+    background-color: #6c757d !important;
+    color: #ffffff !important;
+    border: 2px solid #5a6268;
+    opacity: 0.8;
+    font-weight: bold;
+}
+
+.reservation-item-calendar.blocked-time:hover {
+    background-color: #5a6268 !important;
+    opacity: 1;
+    transform: scale(1.02);
+}
+
+/* 予約受付管理セクション */
+.block-reservation-container {
+    background-color: #4a4a4a;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 2px solid #555;
+}
+
+.block-reservation-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.block-reservation-form p {
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* 休止時間選択用のスタイル */
+.time-slot-btn.block-time-slot {
+    background-color: #4a4a4a;
+    color: #ffffff;
+    border: 2px solid #555;
+    border-radius: 6px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    text-align: center;
+}
+
+.time-slot-btn.block-time-slot:hover {
+    background-color: #525252;
+    border-color: #ffc107;
+}
+
+.time-slot-btn.block-time-slot.selected {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #000000 !important;
+    font-weight: bold;
+}
+
+.time-slot-btn.block-time-slot.disabled {
+    background-color: #333;
+    color: #666;
+    cursor: not-allowed;
+    border-color: #333;
+}
+
+.time-slot-btn.block-time-slot.disabled:hover {
+    background-color: #333;
+    border-color: #333;
+}
+
+/* 選択された時間表示エリア */
+.selected-block-times {
+    margin-top: 15px;
+    padding: 12px;
+    background-color: #4a4a4a;
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    min-height: 50px;
+}
+
+/* 休止理由入力 */
+#block-reason {
+    padding: 12px;
+    border: 2px solid #555;
+    border-radius: 8px;
+    background-color: #4a4a4a;
+    color: #ffffff;
+    font-size: 16px;
+    width: 100%;
+}
+
+#block-reason:focus {
+    outline: none;
+    border-color: #ffc107;
+    background-color: #525252;
+}
+
+/* 人数コントロール */
+.population-control {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1.2em;
+    flex-wrap: wrap;
+}
+
+#current-population {
+    font-size: 2em;
+    font-weight: bold;
+    color: #ff6b35;
+    min-width: 60px;
+    text-align: center;
+}
+
+.population-control .btn {
+    width: auto;
+    min-width: 50px;
+}
+
+/* 休憩開始ボタンのインライン配置（デスクトップ用） */
+.break-control-inline {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+}
+
+.break-control-inline .btn {
+    white-space: nowrap;
+}
+
+/* シフト管理セクション - 修正版 */
+.shift-upload-container {
+    background-color: #4a4a4a;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 2px solid #555;
+}
+
+.shift-upload-form {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.shift-upload-form .btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* シフト状態表示 */
+.shift-status {
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: none;
+}
+
+.shift-status.success {
+    background-color: rgba(40, 167, 69, 0.2);
+    border: 1px solid #28a745;
+    color: #28a745;
+    display: block;
+}
+
+.shift-status.error {
+    background-color: rgba(220, 53, 69, 0.2);
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    display: block;
+}
+
+.shift-status.info {
+    background-color: rgba(23, 162, 184, 0.2);
+    border: 1px solid #17a2b8;
+    color: #17a2b8;
+    display: block;
+}
+
+.shift-status.loading {
+    background-color: rgba(255, 193, 7, 0.2);
+    border: 1px solid #ffc107;
+    color: #ffc107;
+    display: block;
+}
+
+/* シフトプレビュー */
+.shift-preview {
+    background-color: #4a4a4a;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    margin-top: 15px;
+}
+
+.shift-preview h4 {
+    color: #17a2b8;
+    margin-bottom: 12px;
+    font-size: 1.1em;
+}
+
+.shift-preview-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #555;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.shift-preview-item:last-child {
+    border-bottom: none;
+}
+
+/* シフト形式情報 */
+.shift-format-info {
+    background-color: #3a3a3a;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    margin-top: 15px;
+}
+
+.shift-format-info h4 {
+    color: #17a2b8;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.shift-format-info ul {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    color: #ccc;
+    line-height: 1.6;
+}
+
+.shift-format-info li {
+    margin-bottom: 5px;
+}
+
+/* カレンダー関連 */
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.calendar-nav-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.calendar-action-section {
+    display: flex;
+    gap: 10px;
+}
+
+.month-year {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #ff6b35;
+}
+
+/* 管理者予約追加ボタン - 改善版 */
+.add-reservation-btn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.add-reservation-btn:hover {
+    background: linear-gradient(135deg, #218838, #1da598);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.add-reservation-btn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.add-reservation-btn span:first-child {
+    font-size: 16px;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* 予約追加ボタンのアニメーション効果 */
+.add-reservation-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.add-reservation-btn:hover::before {
+    left: 100%;
+}
+
+.calendar-container {
+    margin-bottom: 30px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    background-color: #2c2c2c;
+    border: 2px solid #555;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.calendar-day-header {
+    background-color: #ff6b35;
+    color: #ffffff;
+    padding: 10px 5px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.calendar-day {
+    background-color: #4a4a4a;
+    min-height: 120px;
+    padding: 5px;
+    border: 1px solid #555;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-day.other-month {
+    background-color: #333;
+    opacity: 0.5;
+}
+
+.calendar-day.holiday {
+    background-color: #555 !important;
+    opacity: 0.6;
+    position: relative;
+}
+
+.calendar-day.holiday::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(220, 53, 69, 0.3) 10px,
+        rgba(220, 53, 69, 0.3) 20px
+    );
+    pointer-events: none;
+}
+
+.holiday-label {
+    font-size: 10px;
+    color: #dc3545;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 2px;
+}
+
+.calendar-day.holiday .day-reservations {
+    display: none;
+}
+
+/* 日付ヘッダー部分のレイアウト修正 */
+.day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 5px;
+    min-height: 20px;
+}
+
+.day-number {
+    font-weight: bold;
+    color: #ffffff;
+    font-size: 14px;
+    flex-shrink: 0;
+    text-align: left;
+}
+
+/* シフト情報表示エリア */
+.day-shift-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 50%;
+    overflow: hidden;
+}
+
+.shift-employee {
+    background-color: rgba(40, 167, 69, 0.8);
+    border-color: #28a745;
+    color: #ffffff;
+    font-size: 10px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    border: 1px solid #28a745;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.shift-employee:hover {
+    background-color: rgba(40, 167, 69, 1);
+    transform: scale(1.02);
+    z-index: 10;
+    position: relative;
+}
+
+/* シフト情報が複数ある場合の表示調整 */
+.day-shift-info .shift-employee + .shift-employee {
+    margin-top: 1px;
+}
+
+/* 予約エリアを調整 */
+.day-reservations {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    margin-top: 3px;
+}
+
+.reservation-item-calendar {
+    background-color: #ff6b35;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 5px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reservation-item-calendar:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 休業日の場合はシフト情報も非表示 */
+.calendar-day.holiday .day-shift-info {
+    display: none;
+}
+
+/* メニュー凡例 */
+.menu-legend {
+    background-color: #4a4a4a;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #555;
+}
+
+.menu-legend h4 {
+    color: #ff6b35;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+.legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background-color: #555;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.legend-item:hover {
+    background-color: #666;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid #666;
+    flex-shrink: 0;
+}
+
+.legend-empty {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    grid-column: 1 / -1;
+    padding: 20px;
+    background-color: #555;
+    border-radius: 6px;
+}
+
+/* 予約リスト */
+.reservations-list {
+    display: grid;
+    gap: 20px;
+}
+
+.reservation-item {
+    background-color: #4a4a4a;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #555;
+    transition: all 0.3s ease;
+}
+
+.reservation-item:hover {
+    border-color: #ff6b35;
+    transform: translateY(-2px);
+}
+
+.reservation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.reservation-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.reservation-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.reservation-time {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ff6b35;
+}
+
+.reservation-status {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.status-pending {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.status-completed {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.status-cancelled {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+/* 予約詳細モーダル */
+.reservation-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    background-color: #4a4a4a;
+    border-radius: 8px;
+    border: 1px solid #555;
+    transition: all 0.2s ease;
+}
+
+.detail-item:hover {
+    background-color: #525252;
+}
+
+.detail-label {
+    font-weight: bold;
+    color: #ff6b35;
+    min-width: 120px;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.detail-value {
+    color: #ffffff;
+    flex: 1;
+    word-break: break-word;
+}
+
+/* 検索フォーム */
+.search-container {
+    margin-bottom: 20px;
+}
+
+.search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 800px;
+}
+
+.search-form input[type="text"] {
+    padding: 12px;
+    border: 2px solid #555;
+    border-radius: 8px;
+    background-color: #4a4a4a;
+    color: #ffffff;
+    font-size: 16px;
+    width: 100%;
+}
+
+.search-form input[type="text"]:focus {
+    outline: none;
+    border-color: #ff6b35;
+}
+
+.date-range-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.date-range-container input[type="date"] {
+    padding: 12px;
+    border: 2px solid #555;
+    border-radius: 8px;
+    background-color: #4a4a4a;
+    color: #ffffff;
+    font-size: 16px;
+    flex: 1;
+    min-width: 150px;
+}
+
+.date-range-container input[type="date"]:focus {
+    outline: none;
+    border-color: #ff6b35;
+}
+
+.date-range-container span {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.search-form .btn {
+    align-self: flex-start;
+    margin-right: 10px;
+    width: auto;
+}
+
+/* 新しい予約追加モーダル用のスタイル - 改善版 */
+.add-reservation-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.add-reservation-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.add-reservation-form label {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-reservation-form input,
+.add-reservation-form select,
+.add-reservation-form textarea {
+    padding: 12px 15px;
+    border: 2px solid #555;
+    border-radius: 8px;
+    background-color: #4a4a4a;
+    color: #ffffff;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.add-reservation-form input:focus,
+.add-reservation-form select:focus,
+.add-reservation-form textarea:focus {
+    outline: none;
+    border-color: #28a745;
+    background-color: #525252;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+}
+
+.add-reservation-form select option {
+    background-color: #4a4a4a;
+    color: #ffffff;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* 時間スロットグリッド - 改善版 */
+.time-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 8px;
+    margin-top: 15px;
+}
+
+/* 管理者用時間スロットボタン - 改善版 */
+.time-slot-btn.admin-time-slot {
+    background-color: #4a4a4a;
+    color: #ffffff;
+    border: 2px solid #555;
+    border-radius: 6px;
+    padding: 8px 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.time-slot-btn.admin-time-slot:hover {
+    background-color: #525252;
+    border-color: #28a745;
+    transform: translateY(-1px);
+}
+
+.time-slot-btn.admin-time-slot.selected {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    color: #ffffff !important;
+    font-weight: bold;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* 管理者権限で重複時間を強制追加可能なボタン */
+.time-slot-btn.admin-override {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #000000 !important;
+    position: relative;
+}
+
+.time-slot-btn.admin-override::after {
+    content: '🛡️';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 10px;
+    background-color: #17a2b8;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ffffff;
+}
+
+.time-slot-btn.disabled {
+    background-color: #333 !important;
+    color: #666 !important;
+    cursor: not-allowed !important;
+    border-color: #333 !important;
+}
+
+.time-slot-btn.disabled:hover {
+    background-color: #333 !important;
+    border-color: #333 !important;
+    transform: none !important;
+}
+
+/* カスタム時間ボタン - さらに改善 */
+.custom-time-btn {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe) !important;
+    border: 2px solid #6c5ce7 !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    padding: 10px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    min-height: 50px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-top: 10px !important;
+    width: 100% !important;
+    box-shadow: 0 2px 4px rgba(108, 92, 231, 0.3) !important;
+}
+
+.custom-time-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4) !important;
+}
+
+.custom-time-btn.selected {
+    background: linear-gradient(135deg, #ff6b35, #ff8c42) !important;
+    border-color: #ff6b35 !important;
+    animation: pulse-custom 2s infinite;
+}
+
+@keyframes pulse-custom {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 107, 53, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 53, 0);
+    }
+}
+
+/* 予約に関する注意事項 */
+.reservation-notes {
+    background-color: rgba(40, 167, 69, 0.1);
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.reservation-notes h4 {
+    color: #28a745;
+    margin-bottom: 10px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reservation-notes ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.reservation-notes li {
+    color: #ffffff;
+    font-size: 14px;
+    margin-bottom: 6px;
+    padding-left: 20px;
+    position: relative;
+    line-height: 1.4;
+}
+
+.reservation-notes li:before {
+    content: "•";
+    color: #28a745;
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+}
+
+/* 予約追加ボタン - 改善版 */
+.add-reservation-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+}
+
+.add-reservation-buttons .btn {
+    flex: 1;
+    min-width: 140px;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.add-reservation-buttons .btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.add-reservation-buttons .btn-success:hover {
+    background: linear-gradient(135deg, #218838, #1da598);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.add-reservation-buttons .btn-success:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.add-reservation-buttons .btn-secondary {
+    background-color: #6c757d;
+    border: none;
+}
+
+.add-reservation-buttons .btn-secondary:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+}
+
+/* カスタム時間モーダルの改善 */
+.custom-time-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+}
+
+.custom-time-modal-content {
+    background-color: #3a3a3a;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    border: 2px solid #6c5ce7;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    max-width: 400px;
+    width: 90%;
+}
+
+.custom-time-modal h3 {
+    color: #6c5ce7;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.custom-time-input {
+    padding: 12px;
+    border: 2px solid #6c5ce7;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #333;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    width: 150px;
+    margin: 10px;
+    box-shadow: 0 2px 4px rgba(108, 92, 231, 0.2);
+}
+
+.custom-time-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 25px;
+}
+
+.custom-time-btn-confirm {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+}
+
+.custom-time-btn-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(108, 92, 231, 0.4);
+}
+
+.custom-time-btn-cancel {
+    background-color: #6c757d;
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.custom-time-btn-cancel:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+}
+
+/* レスポンシブ対応 */
+@media (min-width: 769px) {
+    .calendar-day {
+        min-height: 140px;
+    }
+    
+    .shift-employee {
+        font-size: 11px;
+        padding: 2px 5px;
+    }
+    
+    .day-shift-info {
+        max-width: 45%;
+    }
+    
+    .add-reservation-buttons {
+        flex-direction: row;
+    }
+}
+
+@media (max-width: 768px) {
+    .shift-upload-container {
+        padding: 15px;
+    }
+    
+    .shift-upload-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .shift-upload-form .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .calendar-day {
+        min-height: 80px;
+    }
+    
+    .day-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+    
+    .day-shift-info {
+        max-width: 100%;
+        margin-top: 2px;
+    }
+    
+    .shift-employee {
+        font-size: 9px;
+        padding: 1px 3px;
+    }
+    
+    .shift-preview-item {
+        font-size: 13px;
+    }
+    
+    .shift-format-info {
+        padding: 12px;
+    }
+    
+    .shift-format-info ul {
+        font-size: 13px;
+    }
+    
+    /* モバイル用時間スロット調整 */
+    .time-slots-grid {
+        grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
+        gap: 6px;
+    }
+    
+    .time-slot-btn.admin-time-slot {
+        font-size: 12px;
+        padding: 6px 4px;
+        min-height: 32px;
+    }
+    
+    .custom-time-btn {
+        min-height: 45px !important;
+        font-size: 13px !important;
+    }
+    
+    .add-reservation-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .add-reservation-buttons .btn {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .custom-time-modal-content {
+        padding: 20px;
+        width: 95%;
+    }
+    
+    .custom-time-input {
+        width: 130px;
+        font-size: 16px;
+    }
+    
+    .custom-time-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .custom-time-btn-confirm,
+    .custom-time-btn-cancel {
+        width: 100%;
+    }
+}
+
+@media (max-width: 320px) {
+    .shift-employee {
+        font-size: 8px;
+        padding: 1px 2px;
+    }
+    
+    .day-shift-info {
+        gap: 1px;
+    }
+    
+    .time-slots-grid {
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+        gap: 4px;
+    }
+    
+    .time-slot-btn.admin-time-slot {
+        font-size: 11px;
+        padding: 4px 2px;
+        min-height: 28px;
+    }
+    
+    .custom-time-input {
+        width: 120px;
+        font-size: 14px;
+        padding: 10px;
+    }
+    
+    .add-reservation-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+        min-height: 40px;
+    }
+}

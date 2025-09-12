@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予約管理システム</title>
+    <!-- 分割されたCSSファイルを順序良く読み込み -->
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="components.css">
+    <link rel="stylesheet" href="calendar.css">
+    <link rel="stylesheet" href="responsive.css">
+    <!-- SheetJS CDN for Excel file handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Math.js CDN for mathematical calculations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <!-- Firebase Web SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div id="login-screen" class="screen">
+        <div class="login-container">
+            <h1>予約管理システム</h1>
+            <div class="login-form">
+                <input type="text" id="user-id" placeholder="ユーザーID">
+                <input type="password" id="password" placeholder="パスワード">
+                <button id="login-btn" class="btn btn-primary">ログイン</button>
+            </div>
+            <div id="login-error" class="error-message"></div>
+        </div>
+    </div>
+
+    <div id="main-screen" class="screen hidden">
+        <nav class="navbar">
+            <h1>予約管理システム</h1>
+            <div class="nav-buttons">
+                <button id="logout-btn" class="btn btn-secondary">ログアウト</button>
+            </div>
+        </nav>
+
+        <div class="tab-container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="home">ホーム</button>
+                <button class="tab-btn" data-tab="calendar">予約確認</button>
+                <button class="tab-btn" data-tab="reservations">予約履歴</button>
+                <button class="tab-btn" data-tab="settings">設定</button>
+            </div>
+
+            <div id="home-tab" class="tab-content active">
+                <div class="section">
+                    <h2>デジタルサイネージ管理</h2>
+                    <div id="signage-management" class="signage-management">
+                        <!-- この部分は JavaScript の updateSignageDisplay() で動的に更新されます -->
+                        <div class="population-control">
+                            <div class="population-display">
+                                <span>現在の待ち人数: </span>
+                                <span id="current-population">0</span>
+                            </div>
+                            <div class="population-buttons">
+                                <button id="population-minus" class="btn btn-primary">-</button>
+                                <button id="population-plus" class="btn btn-primary">+</button>
+                            </div>
+                            <div class="break-control-inline">
+                                <button id="start-break-btn" class="btn btn-secondary">休憩開始</button>
+                            </div>
+                        </div>
+                        
+                        <!-- カスタムメッセージ管理セクション -->
+                        <div class="custom-message-section">
+                            <h3>カスタムメッセージ</h3>
+                            <div class="custom-message-display">
+                                <div class="current-message">
+                                    <span>現在のメッセージ: </span>
+                                    <span id="current-custom-message">設定されていません</span>
+                                </div>
+                                <div class="custom-message-actions">
+                                    <button id="change-custom-message-btn" class="btn btn-primary">メッセージ変更</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- ニュース表示管理セクション -->
+                        <div class="news-display-section">
+                            <h3>ニュース表示</h3>
+                            <div class="news-display-control">
+                                <div class="news-status">
+                                    <span>ニュース表示: </span>
+                                    <span id="current-news-status">ON</span>
+                                </div>
+                                <div class="news-display-actions">
+                                    <button id="toggle-news-display-btn" class="btn btn-secondary">表示切替</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>予約一覧（来店前）</h2>
+                    <div id="today-reservations" class="reservations-list"></div>
+                </div>
+            </div>
+
+            <div id="calendar-tab" class="tab-content">
+                <div class="section">
+                    <h2>予約カレンダー</h2>
+                    <div class="calendar-controls">
+                        <div class="calendar-nav-section">
+                            <button id="prev-month-btn" class="btn btn-secondary">前月</button>
+                            <span id="current-month-year" class="month-year"></span>
+                            <button id="next-month-btn" class="btn btn-secondary">次月</button>
+                        </div>
+                        <div class="calendar-action-section">
+                            <button id="add-reservation-btn" class="add-reservation-btn">
+                                <span>📅</span>
+                                <span>予約追加</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="calendar-container" class="calendar-container">
+                        <div id="calendar-grid" class="calendar-grid"></div>
+                    </div>
+                    <div id="menu-legend" class="menu-legend"></div>
+                </div>
+            </div>
+
+            <div id="reservations-tab" class="tab-content">
+                <div class="section">
+                    <h2>予約履歴</h2>
+                    <div class="search-container">
+                        <div class="search-form">
+                            <input type="text" id="search-text" placeholder="名前、電話番号、メニュー、メールアドレスで検索">
+                            <div class="date-range-container">
+                                <input type="date" id="search-date-from" placeholder="開始日">
+                                <span>～</span>
+                                <input type="date" id="search-date-to" placeholder="終了日">
+                            </div>
+                            <button id="search-btn" class="btn btn-primary">検索</button>
+                            <button id="clear-search-btn" class="btn btn-secondary">クリア</button>
+                        </div>
+                    </div>
+                    <div id="reservation-history" class="reservations-list"></div>
+                </div>
+            </div>
+
+            <div id="settings-tab" class="tab-content">
+                <div class="section">
+                    <h2>予約受付管理</h2>
+                    <div class="block-reservation-container">
+                        <div class="block-reservation-form">
+                            <p style="color: #ffffff; margin-bottom: 15px;">
+                                特定の日時の予約受付を停止できます。
+                            </p>
+                            <button id="add-block-btn" class="btn btn-primary">休止日時を追加</button>
+                        </div>
+                        <div id="block-message" class="message"></div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>シフト表管理</h2>
+                    <div class="shift-upload-container">
+                        <div class="shift-upload-form">
+                            <input type="file" id="shift-file-input" accept=".xlsx,.xls" style="display: none;">
+                            <button id="shift-upload-btn" class="btn btn-secondary" type="button">
+                                📤 Excelシフト表をアップロード
+                            </button>
+                            <button id="shift-clear-btn" class="btn btn-danger" type="button" style="display: none;">
+                                🗑️ シフト表をクリア
+                            </button>
+                        </div>
+                        <div id="shift-status" class="shift-status"></div>
+                        <div id="shift-preview" class="shift-preview" style="display: none;"></div>
+                        <div class="shift-format-info">
+                            <h4>📝 Excelファイル形式（数式対応）</h4>
+                            <ul>
+                                <li>A1セル: 「YYYY年M月」形式（例：2025年7月）または日付形式（2025/7/1）</li>
+                                <li>B3行から: 日付（1,2,3...31）※数式による生成にも対応</li>
+                                <li>A5行から: 従業員名（「スケジュール」などの文字まで）</li>
+                                <li>該当セルに「Y」で出勤マーク※数式による「Y」にも対応</li>
+                                <li><strong>数式例:</strong> B3=1, C3=B3+1, D3=C3+1... でも動作します</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>重要なお知らせ管理</h2>
+                    <div class="notice-form">
+                        <input type="text" id="notice-icon" placeholder="アイコン（絵文字）" maxlength="2">
+                        <textarea id="notice-text" placeholder="お知らせ内容"></textarea>
+                        <button id="add-notice-btn" class="btn btn-primary">追加</button>
+                    </div>
+                    <div id="notice-message" class="message"></div>
+                    <div id="notices-list" class="notices-list"></div>
+                </div>
+
+                <div class="section">
+                    <h2>休業日設定</h2>
+                    <div class="holiday-form">
+                        <input type="date" id="holiday-date">
+                        <button id="add-holiday-btn" class="btn btn-primary">追加</button>
+                    </div>
+                    <div id="holiday-message" class="message"></div>
+                    <div id="holidays-list" class="holidays-list"></div>
+                </div>
+
+                <div class="section">
+                    <h2>メニュー管理</h2>
+                    <div class="menu-form">
+                        <input type="text" id="menu-name" placeholder="メニュー名">
+                        <textarea id="menu-text" placeholder="説明"></textarea>
+                        <input type="number" id="menu-worktime" placeholder="作業時間（分）">
+                        <input type="number" id="menu-fare" placeholder="料金（円）">
+                        <button id="add-menu-btn" class="btn btn-primary">追加</button>
+                    </div>
+                    <div id="menus-list" class="menus-list"></div>
+                </div>
+
+                <div class="section">
+                    <h2>メールテンプレート管理</h2>
+                    <div class="template-form">
+                        <input type="text" id="template-title" placeholder="件名">
+                        <textarea id="template-main" placeholder="本文"></textarea>
+                        <button id="add-template-btn" class="btn btn-primary">追加</button>
+                    </div>
+                    <div id="templates-list" class="templates-list"></div>
+                </div>
+
+                <div class="section">
+                    <h2>パスワード変更</h2>
+                    <div class="password-form">
+                        <input type="password" id="old-password" placeholder="現在のパスワード">
+                        <input type="password" id="new-password" placeholder="新しいパスワード">
+                        <input type="password" id="confirm-password" placeholder="新しいパスワード（確認）">
+                        <button id="change-password-btn" class="btn btn-primary">変更</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダルダイアログ -->
+    <div id="mail-modal" class="modal">
+        <div class="modal-content">
+            <h3>メール送信</h3>
+            <div class="mail-templates">
+                <h4>定型文</h4>
+                <div id="mail-templates-list"></div>
+            </div>
+            <div class="mail-form">
+                <input type="text" id="mail-subject" placeholder="件名">
+                <textarea id="mail-body" placeholder="本文"></textarea>
+                <div class="modal-buttons">
+                    <button id="send-mail-btn" class="btn btn-primary">送信</button>
+                    <button id="cancel-mail-btn" class="btn btn-secondary">キャンセル</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="confirm-title">確認</h3>
+            <p id="confirm-message"></p>
+            <div class="modal-buttons">
+                <button id="confirm-yes-btn" class="btn btn-primary">はい</button>
+                <button id="confirm-no-btn" class="btn btn-secondary">いいえ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reservation-detail-modal" class="modal">
+        <div class="modal-content">
+            <h3>予約詳細</h3>
+            <div class="reservation-detail">
+                <div class="detail-item">
+                    <span class="detail-label">予約番号:</span>
+                    <span id="detail-id" class="detail-value"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">日付:</span>
+                    <span id="detail-date" class="detail-value"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">時間:</span>
+                    <span id="detail-time" class="detail-value"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">お名前:</span>
+                    <span id="detail-name" class="detail-value"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">電話番号:</span>
+                    <span id="detail-phone" class="detail-value"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">予約メニュー:</span>
+                    <span id="detail-menu" class="detail-value"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">メールアドレス:</span>
+                    <span id="detail-email" class="detail-value"></span>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button id="detail-cancel-btn" class="btn btn-danger">キャンセル</button>
+                <button id="detail-mail-btn" class="btn btn-secondary">メール送信</button>
+                <button id="detail-close-btn" class="btn btn-primary">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新しい予約追加モーダル -->
+    <div id="add-reservation-modal" class="modal">
+        <div class="modal-content">
+            <h3>新規予約追加</h3>
+            <div class="add-reservation-form">
+                <div class="form-group">
+                    <label for="add-reservation-date">予約日:</label>
+                    <input type="date" id="add-reservation-date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="add-reservation-name">お名前:</label>
+                    <input type="text" id="add-reservation-name" placeholder="例：山田太郎" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="add-reservation-phone">電話番号（任意）:</label>
+                    <input type="tel" id="add-reservation-phone" placeholder="例：090-1234-5678">
+                </div>
+                
+                <div class="form-group">
+                    <label for="add-reservation-email">メールアドレス（任意）:</label>
+                    <input type="email" id="add-reservation-email" placeholder="example@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="add-reservation-menu">メニュー:</label>
+                    <select id="add-reservation-menu" required>
+                        <option value="">メニューを選択してください</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>時間:</label>
+                    <div id="add-reservation-timeslots" class="time-slots-grid">
+                        <!-- 時間スロットは動的に生成されます -->
+                    </div>
+                </div>
+                
+                <div class="reservation-notes">
+                    <h4>予約について</h4>
+                    <ul>
+                        <li>管理者による手動予約追加です</li>
+                        <li>お名前のみ必須、電話番号・メールアドレスは任意です</li>
+                        <li>予約番号は自動生成されます</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="add-reservation-buttons">
+                <button id="submit-add-reservation-btn" class="btn btn-success">予約追加</button>
+                <button id="cancel-add-reservation-btn" class="btn btn-secondary">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 予約休止モーダル -->
+    <div id="block-reservation-modal" class="modal">
+        <div class="modal-content">
+            <h3>予約受付休止設定</h3>
+            <div class="block-reservation-form">
+                <div class="form-group">
+                    <label for="block-reservation-date">日付:</label>
+                    <input type="date" id="block-reservation-date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="block-reason">休止理由:</label>
+                    <input type="text" id="block-reason" placeholder="例：会議、イベント、メンテナンス" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>休止する時間帯:</label>
+                    <div id="block-reservation-timeslots" class="time-slots-grid">
+                        <!-- 時間スロットは動的に生成されます -->
+                    </div>
+                </div>
+                
+                <div class="reservation-notes">
+                    <h4>⚠️ 注意事項</h4>
+                    <ul>
+                        <li>設定された時間帯は予約受付が停止されます</li>
+                        <li>複数の時間帯を同時に選択できます</li>
+                        <li>既に予約がある時間帯は選択できません</li>
+                        <li>設定後、カレンダーに休止時間として表示されます</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="submit-block-btn" class="btn btn-primary">休止時間を設定</button>
+                <button id="cancel-block-btn" class="btn btn-secondary">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- カスタムメッセージ変更モーダル -->
+    <div id="custom-message-modal" class="modal">
+        <div class="modal-content">
+            <h3>カスタムメッセージ変更</h3>
+            <div class="custom-message-form">
+                <div class="form-group">
+                    <label for="custom-message-input">デジタルサイネージに表示するメッセージを入力してください:</label>
+                    <textarea id="custom-message-input" placeholder="例：本日は混雑が予想されます。お時間に余裕をもってお越しください。" rows="4"></textarea>
+                </div>
+                
+                <div class="custom-message-templates">
+                    <h4>定型文</h4>
+                    <div class="template-buttons">
+                        <button type="button" class="btn btn-small btn-secondary template-btn" data-template="本日は混雑が予想されます。">混雑予想</button>
+                        <button type="button" class="btn btn-small btn-secondary template-btn" data-template="キャンペーン実施中！">キャンペーン</button>
+                        <button type="button" class="btn btn-small btn-secondary template-btn" data-template="新メニュー追加しました。">新メニュー</button>
+                        <button type="button" class="btn btn-small btn-secondary template-btn" data-template="お時間に余裕をもってお越しください。">時間余裕</button>
+                    </div>
+                </div>
+                
+                <div class="custom-message-notes">
+                    <h4>📝 注意事項</h4>
+                    <ul>
+                        <li>空欄にすると「設定されていません」と表示されます</li>
+                        <li>変更は即座にデジタルサイネージに反映されます</li>
+                        <li>改行は自動で調整されます</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="update-custom-message-btn" class="btn btn-primary">メッセージ更新</button>
+                <button id="cancel-custom-message-btn" class="btn btn-secondary">キャンセル</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- シフト管理用のデバッグコンソール（開発用） -->
+    <div id="shift-debug-console" style="display: none; position: fixed; bottom: 10px; right: 10px; background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 12px; max-width: 300px; max-height: 200px; overflow-y: auto; z-index: 9999; border-radius: 5px;">
+        <div id="shift-debug-content">シフト管理デバッグ</div>
+    </div>
+    
+    <!-- リアルタイム更新通知エリア（動的生成） -->
+    <!-- #realtime-notifications と #connection-status は JavaScript で動的に作成されます -->
+    
+    <!-- JavaScriptファイルの読み込み順序を最適化（リアルタイム更新機能を追加） -->
+    <script>
+        // 初期化フラグ
+        window.shiftManagementInitialized = false;
+        
+        // シフト管理デバッグログ関数
+        function shiftDebugLog(message) {
+            console.log(`[SHIFT DEBUG] ${message}`);
+            const debugContent = document.getElementById('shift-debug-content');
+            if (debugContent) {
+                const timestamp = new Date().toLocaleTimeString();
+                debugContent.innerHTML = `[${timestamp}] ${message}<br>` + debugContent.innerHTML;
+            }
+        }
+        
+        // SheetJSライブラリの読み込み確認
+        document.addEventListener('DOMContentLoaded', function() {
+            shiftDebugLog('DOM読み込み完了');
+            
+            // SheetJSライブラリ確認
+            if (typeof XLSX !== 'undefined') {
+                shiftDebugLog('XLSX ライブラリ確認: OK');
+            } else {
+                shiftDebugLog('XLSX ライブラリ確認: NG - 再読み込みが必要');
+            }
+        });
+    </script>
+    
+    <!-- 基本機能JavaScriptファイル -->
+    <script src="auth.js"></script>
+    <script src="shift-management.js"></script>
+    <script src="main-features.js"></script>
+    <script src="calendar.js"></script>
+    <script src="modals.js"></script>
+    <script src="add-reservation.js"></script>
+    <script src="reservation-blocking.js"></script>
+    <script src="signage-management.js"></script>
+    
+    <!-- リアルタイム更新機能 -->
+    <script src="firestore-listener.js"></script>
+    <script src="real-time-updates.js"></script>
+</body>
+</html>
