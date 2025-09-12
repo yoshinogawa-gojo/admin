@@ -70,7 +70,7 @@ function initializeMainFeatures() {
     }
 }
 
-// タブ切り替え（修正版 - データ読み込み状態を考慮、シフト表示確認を追加）
+// タブ切り替え（簡素化版）
 function switchTab(tabName) {
     console.log(`[Main Features] タブ切り替え: ${tabName}`);
     
@@ -87,41 +87,8 @@ function switchTab(tabName) {
         if (tabName === 'calendar') {
             console.log('[Main Features] カレンダータブが選択されました');
             
-            // カレンダータブが選択された場合の処理を改善
-            // 必要なデータが揃うまで少し待ってからレンダリング
+            // カレンダータブが選択された場合の処理
             setTimeout(() => {
-                // シフトデータの存在確認
-                let hasShiftData = false;
-                try {
-                    hasShiftData = (window.shiftData && Object.keys(window.shiftData).length > 0) ||
-                                  (typeof shiftData !== 'undefined' && shiftData && Object.keys(shiftData).length > 0) ||
-                                  (localStorage.getItem('shiftData') !== null);
-                    
-                    console.log(`[Main Features] シフトデータ存在確認: ${hasShiftData}`);
-                    
-                    if (hasShiftData) {
-                        // シフトデータが存在する場合、詳細をログ出力
-                        if (window.shiftData) {
-                            console.log('[Main Features] window.shiftData:', Object.keys(window.shiftData).slice(0, 3));
-                        }
-                        if (typeof shiftData !== 'undefined' && shiftData) {
-                            console.log('[Main Features] グローバルshiftData:', Object.keys(shiftData).slice(0, 3));
-                        }
-                        
-                        const lsData = localStorage.getItem('shiftData');
-                        if (lsData) {
-                            try {
-                                const parsed = JSON.parse(lsData);
-                                console.log('[Main Features] localStorage shiftData:', Object.keys(parsed).slice(0, 3));
-                            } catch (e) {
-                                console.warn('[Main Features] localStorage shiftData parse error:', e);
-                            }
-                        }
-                    }
-                } catch (e) {
-                    console.warn('[Main Features] シフトデータ確認エラー:', e);
-                }
-                
                 if (typeof renderCalendar === 'function') {
                     console.log('[Main Features] カレンダー描画実行');
                     renderCalendar();
@@ -132,55 +99,31 @@ function switchTab(tabName) {
                 if (typeof renderMenuLegend === 'function') {
                     renderMenuLegend();
                 }
-            }, 200); // 200ms待機してデータの読み込みを待つ
-        }
-        
-        if (tabName === 'settings') {
-            console.log('[Main Features] 設定タブが選択されました');
-            
-            // シフト管理機能の初期化確認
-            setTimeout(() => {
-                if (typeof window.initializeShiftManagement === 'function' && !window.shiftManagementInitialized) {
-                    console.log('[Main Features] シフト管理機能の遅延初期化実行');
-                    window.initializeShiftManagement();
-                }
-            }, 100);
+            }, 200);
         }
     }
 }
 
-// 予約表示（休憩モード対応版、休止時間除外版）
+// 予約表示（休止時間除外版）
 function displayReservations() {
-    // 休憩モード時は今日の予約表示を修正
-    if (breakMode && breakMode.turn) {
-        if (todayReservationsDiv) {
-            todayReservationsDiv.innerHTML = `
-                <div style="text-align: center; padding: 20px; background-color: rgba(220, 53, 69, 0.2); border: 2px solid #dc3545; border-radius: 10px; margin: 20px 0;">
-                    <h3 style="color: #dc3545; margin-bottom: 10px;">現在休憩中です</h3>
-                    <p style="color: #ffffff; font-size: 1.1em;">${breakMode.custom || ''}</p>
-                </div>
-            `;
-        }
-    } else {
-        // 通常営業時の予約表示（休止時間除外版）
-        const today = new Date().toISOString().split('T')[0];
-        
-        // reservations配列が存在することを確認し、休止時間を除外
-        const todayReservations = (reservations && Array.isArray(reservations)) ? 
-            reservations.filter(r => 
-                r.date >= today && 
-                r.states === 0 && 
-                r['Name-f'] !== '休止時間' // 休止時間を除外
-            ).sort((a, b) => {
-                if (a.date === b.date) {
-                    return a.Time.localeCompare(b.Time);
-                }
-                return a.date.localeCompare(b.date);
-            }) : [];
+    // 通常営業時の予約表示（休止時間除外版）
+    const today = new Date().toISOString().split('T')[0];
+    
+    // reservations配列が存在することを確認し、休止時間を除外
+    const todayReservations = (reservations && Array.isArray(reservations)) ? 
+        reservations.filter(r => 
+            r.date >= today && 
+            r.states === 0 && 
+            r['Name-f'] !== '休止時間' // 休止時間を除外
+        ).sort((a, b) => {
+            if (a.date === b.date) {
+                return a.Time.localeCompare(b.Time);
+            }
+            return a.date.localeCompare(b.date);
+        }) : [];
 
-        if (todayReservationsDiv) {
-            todayReservationsDiv.innerHTML = renderReservationsList(todayReservations, 'today');
-        }
+    if (todayReservationsDiv) {
+        todayReservationsDiv.innerHTML = renderReservationsList(todayReservations, 'today');
     }
 
     // 履歴は休止時間を除外
@@ -261,7 +204,7 @@ function renderReservationsList(reservationsList, type) {
         const email = reservation.mail || '';
         
         let actionsHTML = '';
-        if (type === 'today' && (!breakMode || !breakMode.turn)) {
+        if (type === 'today') {
             // 通常営業時のみアクションボタンを表示
             // 同行者の場合はメール送信ボタンを無効化
             const mailButtonDisabled = email === '同行者' ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : '';
@@ -324,13 +267,8 @@ function getStatusClass(status) {
     }
 }
 
-// 来店処理（休憩モード時は無効化）
+// 来店処理
 async function handleVisit(reservationId) {
-    if (breakMode && breakMode.turn) {
-        alert('休憩中のため、来店処理はできません。');
-        return;
-    }
-    
     try {
         const response = await fetch(`${API_BASE_URL}/reservations/${reservationId}/status`, {
             method: 'POST',
@@ -346,13 +284,8 @@ async function handleVisit(reservationId) {
     }
 }
 
-// キャンセル処理（休憩モード時は無効化）
+// キャンセル処理
 function handleCancel(reservationId) {
-    if (breakMode && breakMode.turn) {
-        alert('休憩中のため、キャンセル処理はできません。');
-        return;
-    }
-    
     if (typeof showConfirm === 'function') {
         showConfirm('予約キャンセル', '本当にキャンセルしますか？', async () => {
             try {
