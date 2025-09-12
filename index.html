@@ -9,13 +9,8 @@
     <link rel="stylesheet" href="components.css">
     <link rel="stylesheet" href="calendar.css">
     <link rel="stylesheet" href="responsive.css">
-    <!-- SheetJS CDN for Excel file handling -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Math.js CDN for mathematical calculations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
-    <!-- Firebase Web SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div id="login-screen" class="screen">
@@ -47,54 +42,6 @@
             </div>
 
             <div id="home-tab" class="tab-content active">
-                <div class="section">
-                    <h2>デジタルサイネージ管理</h2>
-                    <div id="signage-management" class="signage-management">
-                        <!-- この部分は JavaScript の updateSignageDisplay() で動的に更新されます -->
-                        <div class="population-control">
-                            <div class="population-display">
-                                <span>現在の待ち人数: </span>
-                                <span id="current-population">0</span>
-                            </div>
-                            <div class="population-buttons">
-                                <button id="population-minus" class="btn btn-primary">-</button>
-                                <button id="population-plus" class="btn btn-primary">+</button>
-                            </div>
-                            <div class="break-control-inline">
-                                <button id="start-break-btn" class="btn btn-secondary">休憩開始</button>
-                            </div>
-                        </div>
-                        
-                        <!-- カスタムメッセージ管理セクション -->
-                        <div class="custom-message-section">
-                            <h3>カスタムメッセージ</h3>
-                            <div class="custom-message-display">
-                                <div class="current-message">
-                                    <span>現在のメッセージ: </span>
-                                    <span id="current-custom-message">設定されていません</span>
-                                </div>
-                                <div class="custom-message-actions">
-                                    <button id="change-custom-message-btn" class="btn btn-primary">メッセージ変更</button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- ニュース表示管理セクション -->
-                        <div class="news-display-section">
-                            <h3>ニュース表示</h3>
-                            <div class="news-display-control">
-                                <div class="news-status">
-                                    <span>ニュース表示: </span>
-                                    <span id="current-news-status">ON</span>
-                                </div>
-                                <div class="news-display-actions">
-                                    <button id="toggle-news-display-btn" class="btn btn-secondary">表示切替</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="section">
                     <h2>予約一覧（来店前）</h2>
                     <div id="today-reservations" class="reservations-list"></div>
@@ -154,33 +101,6 @@
                             <button id="add-block-btn" class="btn btn-primary">休止日時を追加</button>
                         </div>
                         <div id="block-message" class="message"></div>
-                    </div>
-                </div>
-
-                <div class="section">
-                    <h2>シフト表管理</h2>
-                    <div class="shift-upload-container">
-                        <div class="shift-upload-form">
-                            <input type="file" id="shift-file-input" accept=".xlsx,.xls" style="display: none;">
-                            <button id="shift-upload-btn" class="btn btn-secondary" type="button">
-                                📤 Excelシフト表をアップロード
-                            </button>
-                            <button id="shift-clear-btn" class="btn btn-danger" type="button" style="display: none;">
-                                🗑️ シフト表をクリア
-                            </button>
-                        </div>
-                        <div id="shift-status" class="shift-status"></div>
-                        <div id="shift-preview" class="shift-preview" style="display: none;"></div>
-                        <div class="shift-format-info">
-                            <h4>📝 Excelファイル形式（数式対応）</h4>
-                            <ul>
-                                <li>A1セル: 「YYYY年M月」形式（例：2025年7月）または日付形式（2025/7/1）</li>
-                                <li>B3行から: 日付（1,2,3...31）※数式による生成にも対応</li>
-                                <li>A5行から: 従業員名（「スケジュール」などの文字まで）</li>
-                                <li>該当セルに「Y」で出勤マーク※数式による「Y」にも対応</li>
-                                <li><strong>数式例:</strong> B3=1, C3=B3+1, D3=C3+1... でも動作します</li>
-                            </ul>
-                        </div>
                     </div>
                 </div>
 
@@ -406,92 +326,13 @@
             </div>
         </div>
     </div>
-
-    <!-- カスタムメッセージ変更モーダル -->
-    <div id="custom-message-modal" class="modal">
-        <div class="modal-content">
-            <h3>カスタムメッセージ変更</h3>
-            <div class="custom-message-form">
-                <div class="form-group">
-                    <label for="custom-message-input">デジタルサイネージに表示するメッセージを入力してください:</label>
-                    <textarea id="custom-message-input" placeholder="例：本日は混雑が予想されます。お時間に余裕をもってお越しください。" rows="4"></textarea>
-                </div>
-                
-                <div class="custom-message-templates">
-                    <h4>定型文</h4>
-                    <div class="template-buttons">
-                        <button type="button" class="btn btn-small btn-secondary template-btn" data-template="本日は混雑が予想されます。">混雑予想</button>
-                        <button type="button" class="btn btn-small btn-secondary template-btn" data-template="キャンペーン実施中！">キャンペーン</button>
-                        <button type="button" class="btn btn-small btn-secondary template-btn" data-template="新メニュー追加しました。">新メニュー</button>
-                        <button type="button" class="btn btn-small btn-secondary template-btn" data-template="お時間に余裕をもってお越しください。">時間余裕</button>
-                    </div>
-                </div>
-                
-                <div class="custom-message-notes">
-                    <h4>📝 注意事項</h4>
-                    <ul>
-                        <li>空欄にすると「設定されていません」と表示されます</li>
-                        <li>変更は即座にデジタルサイネージに反映されます</li>
-                        <li>改行は自動で調整されます</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="modal-buttons">
-                <button id="update-custom-message-btn" class="btn btn-primary">メッセージ更新</button>
-                <button id="cancel-custom-message-btn" class="btn btn-secondary">キャンセル</button>
-            </div>
-        </div>
-    </div>
     
-    <!-- シフト管理用のデバッグコンソール（開発用） -->
-    <div id="shift-debug-console" style="display: none; position: fixed; bottom: 10px; right: 10px; background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 12px; max-width: 300px; max-height: 200px; overflow-y: auto; z-index: 9999; border-radius: 5px;">
-        <div id="shift-debug-content">シフト管理デバッグ</div>
-    </div>
-    
-    <!-- リアルタイム更新通知エリア（動的生成） -->
-    <!-- #realtime-notifications と #connection-status は JavaScript で動的に作成されます -->
-    
-    <!-- JavaScriptファイルの読み込み順序を最適化（リアルタイム更新機能を追加） -->
-    <script>
-        // 初期化フラグ
-        window.shiftManagementInitialized = false;
-        
-        // シフト管理デバッグログ関数
-        function shiftDebugLog(message) {
-            console.log(`[SHIFT DEBUG] ${message}`);
-            const debugContent = document.getElementById('shift-debug-content');
-            if (debugContent) {
-                const timestamp = new Date().toLocaleTimeString();
-                debugContent.innerHTML = `[${timestamp}] ${message}<br>` + debugContent.innerHTML;
-            }
-        }
-        
-        // SheetJSライブラリの読み込み確認
-        document.addEventListener('DOMContentLoaded', function() {
-            shiftDebugLog('DOM読み込み完了');
-            
-            // SheetJSライブラリ確認
-            if (typeof XLSX !== 'undefined') {
-                shiftDebugLog('XLSX ライブラリ確認: OK');
-            } else {
-                shiftDebugLog('XLSX ライブラリ確認: NG - 再読み込みが必要');
-            }
-        });
-    </script>
-    
-    <!-- 基本機能JavaScriptファイル -->
+    <!-- JavaScriptファイルの読み込み -->
     <script src="auth.js"></script>
-    <script src="shift-management.js"></script>
     <script src="main-features.js"></script>
     <script src="calendar.js"></script>
     <script src="modals.js"></script>
     <script src="add-reservation.js"></script>
     <script src="reservation-blocking.js"></script>
-    <script src="signage-management.js"></script>
-    
-    <!-- リアルタイム更新機能 -->
-    <script src="firestore-listener.js"></script>
-    <script src="real-time-updates.js"></script>
 </body>
 </html>
