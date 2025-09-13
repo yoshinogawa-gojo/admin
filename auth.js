@@ -13,7 +13,7 @@ function getMenuColorByIndex(index) {
 }
 
 function getMenuColor(menuName) {
-    const menuNames = Object.keys(currentMenus || {});
+    const menuNames = Object.keys(currentMenus);
     const index = menuNames.indexOf(menuName);
     return index >= 0 ? getMenuColorByIndex(index) : MENU_COLORS[MENU_COLORS.length - 1];
 }
@@ -42,42 +42,34 @@ const loginError = document.getElementById('login-error');
 
 // 初期化
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('[Auth] DOM読み込み完了');
+    console.log('DOM読み込み完了');
     initializeEventListeners();
     checkLoginStatus();
 });
 
 // イベントリスナーの設定
 function initializeEventListeners() {
-    if (loginBtn) {
-        loginBtn.addEventListener('click', handleLogin);
-        loginBtn.addEventListener('touchstart', function(e) {
+    loginBtn.addEventListener('click', handleLogin);
+    loginBtn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handleLogin();
+    });
+    
+    logoutBtn.addEventListener('click', handleLogout);
+    
+    passwordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
             e.preventDefault();
             handleLogin();
-        });
-    }
+        }
+    });
     
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
-    }
-    
-    if (passwordInput) {
-        passwordInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleLogin();
-            }
-        });
-    }
-    
-    if (userIdInput) {
-        userIdInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (passwordInput) passwordInput.focus();
-            }
-        });
-    }
+    userIdInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            passwordInput.focus();
+        }
+    });
 }
 
 // ログイン状態チェック
@@ -91,21 +83,19 @@ function checkLoginStatus() {
 
 // ログイン処理
 async function handleLogin() {
-    if (loginBtn && loginBtn.disabled) return;
+    if (loginBtn.disabled) return;
     
     hideError();
-    const userId = userIdInput ? userIdInput.value.trim() : '';
-    const password = passwordInput ? passwordInput.value : '';
+    const userId = userIdInput.value.trim();
+    const password = passwordInput.value;
 
     if (!userId || !password) {
         showError('ユーザーIDとパスワードを入力してください');
         return;
     }
 
-    if (loginBtn) {
-        loginBtn.disabled = true;
-        loginBtn.textContent = 'ログイン中...';
-    }
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'ログイン中...';
 
     try {
         const response = await fetch(`${API_BASE_URL}/login`, {
@@ -125,22 +115,15 @@ async function handleLogin() {
             localStorage.setItem('currentUser', currentUser);
             showMainScreen();
             hideError();
-            
-            // リアルタイム更新を開始
-            if (typeof startRealtimeUpdates === 'function') {
-                startRealtimeUpdates();
-            }
         } else {
             showError(data.error || 'ログインに失敗しました。IDまたはパスワードが間違っています。');
         }
     } catch (error) {
-        console.error('[Auth] ログインエラー:', error);
+        console.error('Error during login:', error);
         showError('ネットワークエラーが発生しました。接続を確認してください。');
     } finally {
-        if (loginBtn) {
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'ログイン';
-        }
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'ログイン';
     }
 }
 
@@ -172,79 +155,45 @@ function hideError() {
 function handleLogout() {
     currentUser = null;
     localStorage.removeItem('currentUser');
-    
-    // リアルタイム更新を停止
-    if (typeof stopRealtimeUpdates === 'function') {
-        stopRealtimeUpdates();
-    }
-    
     showLoginScreen();
 }
 
 // メイン画面表示
 function showMainScreen() {
-    if (loginScreen) loginScreen.classList.add('hidden');
-    if (mainScreen) mainScreen.classList.remove('hidden');
+    loginScreen.classList.add('hidden');
+    mainScreen.classList.remove('hidden');
     
     // データ読み込み開始
     loadInitialData();
     
     // 手動更新ボタンを追加
     addManualRefreshButton();
-    
-    // 予約追加機能を初期化
-    if (typeof initializeAddReservationFeature === 'function') {
-        setTimeout(() => {
-            initializeAddReservationFeature();
-        }, 500);
-    }
-    
-    // Firestore リスナーを初期化
-    if (typeof initializeFirestoreListener === 'function') {
-        setTimeout(() => {
-            initializeFirestoreListener();
-        }, 1000);
-    }
-    
-    // サイネージ管理を初期化
-    if (typeof loadCustomSettingsLocal === 'function') {
-        setTimeout(() => {
-            loadCustomSettingsLocal();
-        }, 500);
-    }
-    
-    // シフト管理を初期化
-    if (typeof initializeShiftManagement === 'function') {
-        setTimeout(() => {
-            initializeShiftManagement();
-        }, 500);
-    }
 }
 
 // ログイン画面表示
 function showLoginScreen() {
-    if (mainScreen) mainScreen.classList.add('hidden');
-    if (loginScreen) loginScreen.classList.remove('hidden');
-    if (userIdInput) userIdInput.value = '';
-    if (passwordInput) passwordInput.value = '';
+    mainScreen.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+    userIdInput.value = '';
+    passwordInput.value = '';
     hideError();
 }
 
-// 初期データ読み込み
+// 初期データ読み込み（簡素化版）
 async function loadInitialData() {
     try {
         console.log('[Auth] 初期データ読み込み開始');
         
-        // メニューを先に読み込む
+        // メニューを先に読み込む（予約表示で必要）
         await loadMenus();
         console.log('[Auth] メニュー読み込み完了');
         
-        // 予約データを読み込み
+        // 予約データを読み込み（メニュー読み込み後）
         await loadReservations();
         console.log('[Auth] 予約読み込み完了');
         
-        // その他のデータを並行読み込み
-        await Promise.allSettled([
+        // その他のデータ
+        await Promise.all([
             loadMailTemplates(),
             loadHolidays(),
             loadNotices()
@@ -271,11 +220,12 @@ async function loadInitialData() {
     }
 }
 
-// 予約データ読み込み
+// 予約データ読み込み（タイムアウト付き）
 async function loadReservations() {
     try {
         console.log('[Auth] 予約データ読み込み開始');
         
+        // 10秒タイムアウトを設定
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             controller.abort();
@@ -284,7 +234,9 @@ async function loadReservations() {
         
         const response = await fetch(`${API_BASE_URL}/reservations`, {
             signal: controller.signal,
-            headers: { 'Accept': 'application/json' }
+            headers: {
+                'Accept': 'application/json'
+            }
         });
         
         clearTimeout(timeoutId);
@@ -299,6 +251,7 @@ async function loadReservations() {
             reservations = data;
             console.log(`[Auth] 予約データ読み込み成功: ${data.length}件`);
             
+            // 表示更新
             if (typeof displayReservations === 'function') {
                 displayReservations();
             }
@@ -311,17 +264,19 @@ async function loadReservations() {
         console.error('[Auth] 予約データ読み込みエラー:', error);
         reservations = [];
         
+        // エラーの種類に応じて処理
         if (error.name === 'AbortError') {
             console.error('[Auth] リクエストタイムアウト');
         }
         
+        // 表示は空の状態で更新
         if (typeof displayReservations === 'function') {
             displayReservations();
         }
     }
 }
 
-// メニューデータ読み込み
+// メニューデータ読み込み（タイムアウト付き）
 async function loadMenus() {
     try {
         console.log('[Auth] メニューデータ読み込み開始');
@@ -366,7 +321,7 @@ async function loadMenus() {
     }
 }
 
-// 手動更新ボタンを追加
+// 手動更新ボタンを追加（シンプル版）
 function addManualRefreshButton() {
     const navbar = document.querySelector('.navbar .nav-buttons');
     if (navbar && !document.getElementById('manual-refresh-btn')) {
@@ -381,13 +336,16 @@ function addManualRefreshButton() {
             this.innerHTML = '⏳ 更新中';
             
             try {
+                // メニューを先に読み込んでから予約を読み込み
                 await loadMenus();
                 await loadReservations();
                 
+                // 表示更新
                 if (typeof displayReservations === 'function') {
                     displayReservations();
                 }
                 
+                // カレンダー更新
                 const calendarTab = document.getElementById('calendar-tab');
                 if (calendarTab && calendarTab.classList.contains('active')) {
                     if (typeof renderCalendar === 'function') {
@@ -402,7 +360,7 @@ function addManualRefreshButton() {
                 }, 2000);
                 
             } catch (error) {
-                console.error('[Auth] 手動更新エラー:', error);
+                console.error('手動更新エラー:', error);
                 this.innerHTML = '⚠ エラー';
                 setTimeout(() => {
                     this.innerHTML = '🔄 更新';
@@ -425,7 +383,7 @@ async function loadMailTemplates() {
             displayTemplates();
         }
     } catch (error) {
-        console.error('[Auth] メールテンプレート読み込みエラー:', error);
+        console.error('Error loading mail templates:', error);
     }
 }
 
@@ -444,7 +402,7 @@ async function loadHolidays() {
             renderCalendar();
         }
     } catch (error) {
-        console.error('[Auth] 定休日読み込みエラー:', error);
+        console.error('Error loading holidays:', error);
         holidays = [];
     }
 }
@@ -464,7 +422,7 @@ async function loadNotices() {
             notices = [];
         }
     } catch (error) {
-        console.error('[Auth] お知らせ読み込みエラー:', error);
+        console.error('Error loading notices:', error);
         notices = [];
     }
 }
