@@ -96,8 +96,8 @@ function switchTab(tabName) {
                     console.error('[Main Features] renderCalendar関数が見つかりません');
                 }
                 
-                if (typeof renderMenuLegend === 'function') {
-                    renderMenuLegend();
+                if (typeof renderSeatTypeLegend === 'function') {
+                    renderSeatTypeLegend();
                 }
             }, 200);
         }
@@ -148,12 +148,12 @@ function getFilteredReservations() {
         filteredReservations = filteredReservations.filter(r => {
             const customerName = (r['Name-f'] || '').toLowerCase();
             const phoneNumber = (r['Name-s'] || '').toLowerCase();
-            const menu = (r.Menu || '').toLowerCase();
+            const seatType = (r.Menu || '').toLowerCase();
             const email = (r.mail || '').toLowerCase();
             
             return customerName.includes(searchText) ||
                    phoneNumber.includes(searchText) ||
-                   menu.includes(searchText) ||
+                   seatType.includes(searchText) ||
                    email.includes(searchText);
         });
     }
@@ -190,7 +190,7 @@ function handleClearSearch() {
     displayReservations();
 }
 
-// 予約リストHTML生成（電話番号対応版）
+// 予約リストHTML生成（座席タイプ対応版）
 function renderReservationsList(reservationsList, type) {
     if (!reservationsList || reservationsList.length === 0) {
         return '<p>予約がありません。</p>';
@@ -235,8 +235,8 @@ function renderReservationsList(reservationsList, type) {
                     <div><strong>日付:</strong> ${reservation.date}</div>
                     <div><strong>お名前:</strong> ${customerName}</div>
                     <div><strong>電話番号:</strong> ${phoneNumber}</div>
-                    <div><strong>メニュー:</strong> ${reservation.Menu || ''}</div>
-                    <div><strong>作業時間:</strong> ${reservation.WorkTime || ''}分</div>
+                    <div><strong>座席タイプ:</strong> ${reservation.Menu || ''}</div>
+                    <div><strong>利用時間:</strong> ${reservation.WorkTime || ''}分</div>
                     <div><strong>メール:</strong> ${email}</div>
                 </div>
                 <div class="reservation-actions">
