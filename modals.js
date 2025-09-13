@@ -228,190 +228,6 @@ async function handlePasswordChange() {
         alert('ネットワークエラーが発生しました。インターネット接続を確認してください。');
     }
 }
-
-// お知らせ表示 - 新規追加
-function displayNotices(noticesList) {
-    if (!noticesListDiv) return;
-    
-    if (!noticesList || noticesList.length === 0) {
-        noticesListDiv.innerHTML = '<div class="notices-empty">重要なお知らせが設定されていません</div>';
-        return;
-    }
-
-    noticesListDiv.innerHTML = noticesList.map(notice => {
-        return `
-            <div class="notice-item">
-                <div class="notice-header">
-                    <div class="notice-title">
-                        <span class="notice-icon-display">${notice.icon}</span>
-                        重要なお知らせ
-                    </div>
-                    <div class="notice-actions">
-                        <button class="btn btn-secondary btn-small notice-edit-btn" data-notice-id="${notice.id}">編集</button>
-                        <button class="btn btn-danger btn-small notice-delete-btn" data-notice-id="${notice.id}">削除</button>
-                    </div>
-                </div>
-                <div class="notice-text-content">${notice.text}</div>
-            </div>
-        `;
-    }).join('');
-    
-    attachNoticeEventListeners();
-}
-
-// お知らせイベントリスナー - 新規追加
-function attachNoticeEventListeners() {
-    const editButtons = document.querySelectorAll('.notice-edit-btn');
-    editButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const noticeId = this.dataset.noticeId;
-            const notice = notices.find(n => n.id === noticeId);
-            if (notice) {
-                editNotice(notice.id, notice.icon, notice.text);
-            }
-        });
-    });
-    
-    const deleteButtons = document.querySelectorAll('.notice-delete-btn');
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const noticeId = this.dataset.noticeId;
-            handleDeleteNotice(noticeId);
-        });
-    });
-}
-
-// お知らせ編集 - 新規追加
-function editNotice(id, icon, text) {
-    if (noticeIconInput) noticeIconInput.value = icon;
-    if (noticeTextInput) noticeTextInput.value = text;
-    
-    if (addNoticeBtn) {
-        addNoticeBtn.textContent = '更新';
-        addNoticeBtn.onclick = () => handleUpdateNotice(id);
-    }
-}
-
-// お知らせ追加 - 新規追加
-async function handleAddNotice() {
-    const icon = noticeIconInput ? noticeIconInput.value.trim() : '';
-    const text = noticeTextInput ? noticeTextInput.value.trim() : '';
-
-    if (!icon || !text) {
-        showNoticeErrorMessage('アイコンとお知らせ内容を入力してください。');
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/notices`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ icon, text })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            resetNoticeForm();
-            await loadNotices();
-            showNoticeSuccessMessage('重要なお知らせを追加しました。');
-        } else {
-            showNoticeErrorMessage(data.error || 'お知らせの追加に失敗しました。');
-        }
-    } catch (error) {
-        console.error('Error adding notice:', error);
-        showNoticeErrorMessage('お知らせの追加に失敗しました。');
-    }
-}
-
-// お知らせ更新 - 新規追加
-async function handleUpdateNotice(originalId) {
-    const text = noticeTextInput ? noticeTextInput.value.trim() : '';
-
-    if (!text) {
-        showNoticeErrorMessage('お知らせ内容を入力してください。');
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/notices/${encodeURIComponent(originalId)}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            resetNoticeForm();
-            await loadNotices();
-            showNoticeSuccessMessage('重要なお知らせを更新しました。');
-        } else {
-            showNoticeErrorMessage(data.error || 'お知らせの更新に失敗しました。');
-        }
-    } catch (error) {
-        console.error('Error updating notice:', error);
-        showNoticeErrorMessage('お知らせの更新に失敗しました。');
-    }
-}
-
-// お知らせフォームリセット - 新規追加
-function resetNoticeForm() {
-    if (noticeIconInput) noticeIconInput.value = '';
-    if (noticeTextInput) noticeTextInput.value = '';
-    if (addNoticeBtn) {
-        addNoticeBtn.textContent = '追加';
-        addNoticeBtn.onclick = handleAddNotice;
-    }
-}
-
-// お知らせ削除 - 新規追加
-async function handleDeleteNotice(noticeId) {
-    const notice = notices.find(n => n.id === noticeId);
-    const displayText = notice ? `「${notice.icon} ${notice.text.substring(0, 30)}...」` : 'このお知らせ';
-    
-    showConfirm('お知らせ削除', `${displayText}を削除しますか？`, async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/notices/${encodeURIComponent(noticeId)}`, {
-                method: 'DELETE'
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                await loadNotices();
-                showNoticeSuccessMessage('重要なお知らせを削除しました。');
-            } else {
-                showNoticeErrorMessage(data.error || 'お知らせの削除に失敗しました。');
-            }
-        } catch (error) {
-            console.error('Error deleting notice:', error);
-            showNoticeErrorMessage('お知らせの削除に失敗しました。');
-        }
-    });
-}
-
-// お知らせメッセージ表示関数 - 新規追加
-function showNoticeSuccessMessage(message) {
-    if (noticeMessage) {
-        noticeMessage.textContent = message;
-        noticeMessage.className = 'message success';
-        setTimeout(() => {
-            noticeMessage.className = 'message';
-        }, 3000);
-    }
-}
-
-function showNoticeErrorMessage(message) {
-    if (noticeMessage) {
-        noticeMessage.textContent = message;
-        noticeMessage.className = 'message error';
-        setTimeout(() => {
-            noticeMessage.className = 'message';
-        }, 3000);
-    }
-}
-
 // 修正版：定休日表示処理
 function displayHolidays(holidays) {
     if (!holidaysListDiv) return;
@@ -625,7 +441,7 @@ async function handleAddMenu() {
     const worktime = menuWorktimeInput ? parseInt(menuWorktimeInput.value) : 0;
     const fare = menuFareInput ? parseInt(menuFareInput.value) : 0;
 
-    if (!name || !text || !worktime || !fare) {
+    if (!name || !text || !worktime) {
         alert('すべての項目を入力してください。');
         return;
     }
@@ -658,7 +474,7 @@ async function handleUpdateMenu(originalName) {
     const worktime = menuWorktimeInput ? parseInt(menuWorktimeInput.value) : 0;
     const fare = menuFareInput ? parseInt(menuFareInput.value) : 0;
 
-    if (!newName || !text || !worktime || !fare) {
+    if (!newName || !text || !worktime) {
         alert('すべての項目を入力してください。');
         return;
     }
