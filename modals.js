@@ -484,7 +484,7 @@ async function handleUpdateMenu(originalName) {
         if (newName !== originalName) {
             // 新しい名前で存在チェック
             if (currentMenus[newName]) {
-                alert('この名前のメニューは既に存在します。別の名前を入力してください。');
+                alert('この名前の項目は既に存在します。別の名前を入力してください。');
                 return;
             }
 
