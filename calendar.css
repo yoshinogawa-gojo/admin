@@ -1,969 +1,457 @@
-/* 予約休止時間表示 */
-.reservation-item-calendar.blocked-time {
-    background-color: #6c757d !important;
-    color: #ffffff !important;
-    border: 2px solid #5a6268;
-    opacity: 0.8;
-    font-weight: bold;
-}
-
-.reservation-item-calendar.blocked-time:hover {
-    background-color: #5a6268 !important;
-    opacity: 1;
-    transform: scale(1.02);
-}
-
-/* 予約受付管理セクション */
-.block-reservation-container {
-    background-color: #4a4a4a;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    border: 2px solid #555;
-}
-
-.block-reservation-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.block-reservation-form p {
-    margin: 0;
-    line-height: 1.6;
-}
-
-/* 休止時間選択用のスタイル */
-.time-slot-btn.block-time-slot {
-    background-color: #4a4a4a;
-    color: #ffffff;
-    border: 2px solid #555;
-    border-radius: 6px;
-    padding: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 14px;
-    text-align: center;
-}
-
-.time-slot-btn.block-time-slot:hover {
-    background-color: #525252;
-    border-color: #ffc107;
-}
-
-.time-slot-btn.block-time-slot.selected {
-    background-color: #ffc107 !important;
-    border-color: #ffc107 !important;
-    color: #000000 !important;
-    font-weight: bold;
-}
-
-.time-slot-btn.block-time-slot.disabled {
-    background-color: #333;
-    color: #666;
-    cursor: not-allowed;
-    border-color: #333;
-}
-
-.time-slot-btn.block-time-slot.disabled:hover {
-    background-color: #333;
-    border-color: #333;
-}
-
-/* 選択された時間表示エリア */
-.selected-block-times {
-    margin-top: 15px;
-    padding: 12px;
-    background-color: #4a4a4a;
-    border: 2px solid #ffc107;
-    border-radius: 8px;
-    min-height: 50px;
-}
-
-/* 休止理由入力 */
-#block-reason {
-    padding: 12px;
-    border: 2px solid #555;
-    border-radius: 8px;
-    background-color: #4a4a4a;
-    color: #ffffff;
-    font-size: 16px;
-    width: 100%;
-}
-
-#block-reason:focus {
-    outline: none;
-    border-color: #ffc107;
-    background-color: #525252;
-}
-
-/* カレンダー関連 */
-.calendar-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.calendar-nav-section {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.calendar-action-section {
-    display: flex;
-    gap: 10px;
-}
-
-.month-year {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #ff6b35;
-}
-
-/* 管理者予約追加ボタン - 改善版 */
-.add-reservation-btn {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: #ffffff;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.add-reservation-btn:hover {
-    background: linear-gradient(135deg, #218838, #1da598);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
-}
-
-.add-reservation-btn:active {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-}
-
-.add-reservation-btn span:first-child {
-    font-size: 16px;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
-}
-
-/* 予約追加ボタンのアニメーション効果 */
-.add-reservation-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-}
-
-.add-reservation-btn:hover::before {
-    left: 100%;
-}
-
-.calendar-container {
-    margin-bottom: 30px;
-}
-
-.calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
-    background-color: #2c2c2c;
-    border: 2px solid #555;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.calendar-day-header {
-    background-color: #ff6b35;
-    color: #ffffff;
-    padding: 10px 5px;
-    text-align: center;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.calendar-day {
-    background-color: #4a4a4a;
-    min-height: 120px;
-    padding: 5px;
-    border: 1px solid #555;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
-.calendar-day.other-month {
-    background-color: #333;
-    opacity: 0.5;
-}
-
-.calendar-day.holiday {
-    background-color: #555 !important;
-    opacity: 0.6;
-    position: relative;
-}
-
-.calendar-day.holiday::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 10px,
-        rgba(220, 53, 69, 0.3) 10px,
-        rgba(220, 53, 69, 0.3) 20px
-    );
-    pointer-events: none;
-}
-
-.holiday-label {
-    font-size: 10px;
-    color: #dc3545;
-    font-weight: bold;
-    text-align: center;
-    margin-top: 2px;
-}
-
-.calendar-day.holiday .day-reservations {
-    display: none;
-}
-
-/* 日付ヘッダー部分のレイアウト */
-.day-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 5px;
-    min-height: 20px;
-}
-
-.day-number {
-    font-weight: bold;
-    color: #ffffff;
-    font-size: 14px;
-    flex-shrink: 0;
-    text-align: left;
-}
-
-/* 予約エリア */
-.day-reservations {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    overflow-y: auto;
-    margin-top: 3px;
-}
-
-.reservation-item-calendar {
-    background-color: #ff6b35;
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    padding: 3px 5px;
-    font-size: 11px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.reservation-item-calendar:hover {
-    transform: scale(1.02);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-/* メニュー凡例 */
-.menu-legend {
-    background-color: #4a4a4a;
-    padding: 20px;
-    border-radius: 8px;
-    border: 2px solid #555;
-}
-
-.menu-legend h4 {
-    color: #ff6b35;
-    margin-bottom: 15px;
-    font-size: 1.2em;
-}
-
-.legend-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    background-color: #555;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-.legend-item:hover {
-    background-color: #666;
-}
-
-.legend-color {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    border: 1px solid #666;
-    flex-shrink: 0;
-}
-
-.legend-empty {
-    text-align: center;
-    color: #888;
-    font-style: italic;
-    grid-column: 1 / -1;
-    padding: 20px;
-    background-color: #555;
-    border-radius: 6px;
-}
-
-/* 予約リスト */
-.reservations-list {
-    display: grid;
-    gap: 20px;
-}
-
-.reservation-item {
-    background-color: #4a4a4a;
-    padding: 20px;
-    border-radius: 10px;
-    border: 2px solid #555;
-    transition: all 0.3s ease;
-}
-
-.reservation-item:hover {
-    border-color: #ff6b35;
-    transform: translateY(-2px);
-}
-
-.reservation-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.reservation-info {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.reservation-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.reservation-time {
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #ff6b35;
-}
-
-.reservation-status {
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 0.9em;
-    font-weight: bold;
-}
-
-.status-pending {
-    background-color: #ffc107;
-    color: #000;
-}
-
-.status-completed {
-    background-color: #28a745;
-    color: #fff;
-}
-
-.status-cancelled {
-    background-color: #dc3545;
-    color: #fff;
-}
-
-/* 予約詳細モーダル */
-.reservation-detail {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.detail-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 15px;
-    background-color: #4a4a4a;
-    border-radius: 8px;
-    border: 1px solid #555;
-    transition: all 0.2s ease;
-}
-
-.detail-item:hover {
-    background-color: #525252;
-}
-
-.detail-label {
-    font-weight: bold;
-    color: #ff6b35;
-    min-width: 120px;
-    margin-right: 15px;
-    flex-shrink: 0;
-}
-
-.detail-value {
-    color: #ffffff;
-    flex: 1;
-    word-break: break-word;
-}
-
-/* 検索フォーム */
-.search-container {
-    margin-bottom: 20px;
-}
-
-.search-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    max-width: 800px;
-}
-
-.search-form input[type="text"] {
-    padding: 12px;
-    border: 2px solid #555;
-    border-radius: 8px;
-    background-color: #4a4a4a;
-    color: #ffffff;
-    font-size: 16px;
-    width: 100%;
-}
-
-.search-form input[type="text"]:focus {
-    outline: none;
-    border-color: #ff6b35;
-}
-
-.date-range-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.date-range-container input[type="date"] {
-    padding: 12px;
-    border: 2px solid #555;
-    border-radius: 8px;
-    background-color: #4a4a4a;
-    color: #ffffff;
-    font-size: 16px;
-    flex: 1;
-    min-width: 150px;
-}
-
-.date-range-container input[type="date"]:focus {
-    outline: none;
-    border-color: #ff6b35;
-}
-
-.date-range-container span {
-    color: #ffffff;
-    font-weight: bold;
-}
-
-.search-form .btn {
-    align-self: flex-start;
-    margin-right: 10px;
-    width: auto;
-}
-
-/* 新しい予約追加モーダル用のスタイル - 改善版 */
-.add-reservation-form {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.add-reservation-form .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.add-reservation-form label {
-    font-weight: 600;
-    color: #ffffff;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.add-reservation-form input,
-.add-reservation-form select,
-.add-reservation-form textarea {
-    padding: 12px 15px;
-    border: 2px solid #555;
-    border-radius: 8px;
-    background-color: #4a4a4a;
-    color: #ffffff;
-    font-size: 16px;
-    width: 100%;
-    box-sizing: border-box;
-    transition: all 0.3s ease;
-}
-
-.add-reservation-form input:focus,
-.add-reservation-form select:focus,
-.add-reservation-form textarea:focus {
-    outline: none;
-    border-color: #28a745;
-    background-color: #525252;
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
-}
-
-.add-reservation-form select option {
-    background-color: #4a4a4a;
-    color: #ffffff;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-/* 時間スロットグリッド - 改善版 */
-.time-slots-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-    gap: 8px;
-    margin-top: 15px;
-}
-
-/* 管理者用時間スロットボタン - 改善版 */
-.time-slot-btn.admin-time-slot {
-    background-color: #4a4a4a;
-    color: #ffffff;
-    border: 2px solid #555;
-    border-radius: 6px;
-    padding: 8px 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 13px;
-    font-weight: 500;
-    text-align: center;
-    min-height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
-.time-slot-btn.admin-time-slot:hover {
-    background-color: #525252;
-    border-color: #28a745;
-    transform: translateY(-1px);
-}
-
-.time-slot-btn.admin-time-slot.selected {
-    background-color: #28a745 !important;
-    border-color: #28a745 !important;
-    color: #ffffff !important;
-    font-weight: bold;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
-}
-
-/* 管理者権限で重複時間を強制追加可能なボタン */
-.time-slot-btn.admin-override {
-    background-color: #ffc107 !important;
-    border-color: #ffc107 !important;
-    color: #000000 !important;
-    position: relative;
-}
-
-.time-slot-btn.admin-override::after {
-    content: '🛡️';
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    font-size: 10px;
-    background-color: #17a2b8;
-    border-radius: 50%;
-    width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #ffffff;
-}
-
-.time-slot-btn.disabled {
-    background-color: #333 !important;
-    color: #666 !important;
-    cursor: not-allowed !important;
-    border-color: #333 !important;
-}
-
-.time-slot-btn.disabled:hover {
-    background-color: #333 !important;
-    border-color: #333 !important;
-    transform: none !important;
-}
-
-/* カスタム時間ボタン - さらに改善 */
-.custom-time-btn {
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe) !important;
-    border: 2px solid #6c5ce7 !important;
-    color: #ffffff !important;
-    border-radius: 8px !important;
-    padding: 10px !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    font-weight: 600 !important;
-    text-align: center !important;
-    min-height: 50px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin-top: 10px !important;
-    width: 100% !important;
-    box-shadow: 0 2px 4px rgba(108, 92, 231, 0.3) !important;
-}
-
-.custom-time-btn:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4) !important;
-}
-
-.custom-time-btn.selected {
-    background: linear-gradient(135deg, #ff6b35, #ff8c42) !important;
-    border-color: #ff6b35 !important;
-    animation: pulse-custom 2s infinite;
-}
-
-@keyframes pulse-custom {
-    0% {
-        box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7);
+// カレンダー関連の要素
+const calendarGrid = document.getElementById('calendar-grid');
+const currentMonthYear = document.getElementById('current-month-year');
+const prevMonthBtn = document.getElementById('prev-month-btn');
+const nextMonthBtn = document.getElementById('next-month-btn');
+const seatTypeLegend = document.getElementById('seat-type-legend');
+
+// 予約詳細モーダル関連
+const detailId = document.getElementById('detail-id');
+const detailDate = document.getElementById('detail-date');
+const detailTime = document.getElementById('detail-time');
+const detailName = document.getElementById('detail-name');
+const detailPhone = document.getElementById('detail-phone');
+const detailSeatType = document.getElementById('detail-seat-type');
+const detailEmail = document.getElementById('detail-email');
+const detailCancelBtn = document.getElementById('detail-cancel-btn');
+const detailMailBtn = document.getElementById('detail-mail-btn');
+const detailCloseBtn = document.getElementById('detail-close-btn');
+
+// イベントリスナー設定
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCalendarFeatures();
+});
+
+function initializeCalendarFeatures() {
+    if (prevMonthBtn) prevMonthBtn.addEventListener('click', goToPrevMonth);
+    if (nextMonthBtn) nextMonthBtn.addEventListener('click', goToNextMonth);
+    if (detailCloseBtn) detailCloseBtn.addEventListener('click', closeReservationDetailModal);
+    if (detailCancelBtn) detailCancelBtn.addEventListener('click', handleDetailCancel);
+    if (detailMailBtn) detailMailBtn.addEventListener('click', handleDetailMail);
+}
+
+// タイムゾーンを考慮した日付文字列変換
+function formatDateToLocal(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// 座席タイプカラー取得の安全版
+function getSeatTypeColorSafe(seatTypeName) {
+    // currentSeatTypesが存在し、座席タイプが定義されている場合のみ色を取得
+    if (currentSeatTypes && typeof currentSeatTypes === 'object' && Object.keys(currentSeatTypes).length > 0) {
+        return getSeatTypeColor(seatTypeName);
     }
-    70% {
-        box-shadow: 0 0 0 10px rgba(255, 107, 53, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(255, 107, 53, 0);
-    }
+    // フォールバック：デフォルトカラーを返す
+    return '#ff6b35'; // オレンジ色をデフォルトとする
 }
 
-/* 予約に関する注意事項 */
-.reservation-notes {
-    background-color: rgba(40, 167, 69, 0.1);
-    border: 2px solid #28a745;
-    border-radius: 8px;
-    padding: 15px;
-    margin-top: 20px;
-}
-
-.reservation-notes h4 {
-    color: #28a745;
-    margin-bottom: 10px;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.reservation-notes ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.reservation-notes li {
-    color: #ffffff;
-    font-size: 14px;
-    margin-bottom: 6px;
-    padding-left: 20px;
-    position: relative;
-    line-height: 1.4;
-}
-
-.reservation-notes li:before {
-    content: "•";
-    color: #28a745;
-    position: absolute;
-    left: 0;
-    font-weight: bold;
-}
-
-/* 予約追加ボタン - 改善版 */
-.add-reservation-buttons {
-    display: flex;
-    gap: 15px;
-    margin-top: 25px;
-    flex-wrap: wrap;
-}
-
-.add-reservation-buttons .btn {
-    flex: 1;
-    min-width: 140px;
-    font-weight: 600;
-    padding: 12px 20px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.add-reservation-buttons .btn-success {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    border: none;
-    position: relative;
-    overflow: hidden;
-}
-
-.add-reservation-buttons .btn-success:hover {
-    background: linear-gradient(135deg, #218838, #1da598);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-.add-reservation-buttons .btn-success:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-.add-reservation-buttons .btn-secondary {
-    background-color: #6c757d;
-    border: none;
-}
-
-.add-reservation-buttons .btn-secondary:hover {
-    background-color: #5a6268;
-    transform: translateY(-1px);
-}
-
-/* カスタム時間モーダルの改善 */
-.custom-time-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1001;
-}
-
-.custom-time-modal-content {
-    background-color: #3a3a3a;
-    padding: 30px;
-    border-radius: 12px;
-    text-align: center;
-    border: 2px solid #6c5ce7;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    max-width: 400px;
-    width: 90%;
-}
-
-.custom-time-modal h3 {
-    color: #6c5ce7;
-    margin-bottom: 20px;
-    font-size: 1.5em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.custom-time-input {
-    padding: 12px;
-    border: 2px solid #6c5ce7;
-    border-radius: 8px;
-    background-color: #ffffff;
-    color: #333;
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-    width: 150px;
-    margin: 10px;
-    box-shadow: 0 2px 4px rgba(108, 92, 231, 0.2);
-}
-
-.custom-time-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 25px;
-}
-
-.custom-time-btn-confirm {
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-    color: #ffffff;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
-}
-
-.custom-time-btn-confirm:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(108, 92, 231, 0.4);
-}
-
-.custom-time-btn-cancel {
-    background-color: #6c757d;
-    color: #ffffff;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    transition: all 0.3s ease;
-}
-
-.custom-time-btn-cancel:hover {
-    background-color: #5a6268;
-    transform: translateY(-1px);
-}
-
-/* レスポンシブ対応 */
-@media (min-width: 769px) {
-    .calendar-day {
-        min-height: 140px;
+// カレンダー描画
+function renderCalendar() {
+    if (!calendarGrid) return;
+    
+    console.log('[カレンダー] renderCalendar() 開始');
+    
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', 
+                       '7月', '8月', '9月', '10月', '11月', '12月'];
+    if (currentMonthYear) {
+        currentMonthYear.textContent = `${year}年 ${monthNames[month]}`;
     }
     
-    .add-reservation-buttons {
-        flex-direction: row;
+    const firstDay = new Date(year, month, 1);
+    const startDate = new Date(firstDay);
+    
+    const dayOfWeek = firstDay.getDay();
+    const startDateOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    startDate.setDate(firstDay.getDate() - startDateOffset);
+    
+    calendarGrid.innerHTML = '';
+    
+    // 曜日ヘッダー
+    const weekdays = ['月', '火', '水', '木', '金', '土', '日'];
+    weekdays.forEach(day => {
+        const dayHeader = document.createElement('div');
+        dayHeader.className = 'calendar-day-header';
+        dayHeader.textContent = day;
+        calendarGrid.appendChild(dayHeader);
+    });
+    
+    // カレンダー日付生成
+    const currentDateObj = new Date(startDate);
+    for (let i = 0; i < 42; i++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        
+        // タイムゾーンを考慮した日付文字列生成
+        const dateString = formatDateToLocal(currentDateObj);
+        const dayNumber = currentDateObj.getDate();
+        
+        if (currentDateObj.getMonth() !== month) {
+            dayElement.classList.add('other-month');
+        }
+        
+        // 休業日チェック
+        if (holidays && holidays.includes(dateString)) {
+            dayElement.classList.add('holiday');
+        }
+        
+        // 日付ヘッダー部分
+        const dayHeader = document.createElement('div');
+        dayHeader.className = 'day-header';
+        
+        // 日付番号表示
+        const dayNumberElement = document.createElement('div');
+        dayNumberElement.className = 'day-number';
+        dayNumberElement.textContent = dayNumber;
+        
+        // 休業日ラベル
+        if (holidays && holidays.includes(dateString)) {
+            const holidayLabel = document.createElement('div');
+            holidayLabel.className = 'holiday-label';
+            holidayLabel.textContent = '休業日';
+            dayNumberElement.appendChild(holidayLabel);
+        }
+        
+        dayHeader.appendChild(dayNumberElement);
+        dayElement.appendChild(dayHeader);
+        
+        // 予約リスト表示（休止時間対応版）
+        const reservationsContainer = document.createElement('div');
+        reservationsContainer.className = 'day-reservations';
+        
+        if (!holidays || !holidays.includes(dateString)) {
+            // reservations配列が存在し、配列であることを確認
+            if (reservations && Array.isArray(reservations)) {
+                const dayReservations = reservations.filter(r => 
+                    r.date === dateString && r.states === 0
+                ).sort((a, b) => a.Time.localeCompare(b.Time));
+                
+                // 通常予約と休止時間を分離
+                const normalReservations = dayReservations.filter(r => r['Name-f'] !== '休止時間');
+                const blockedTimeSlots = dayReservations.filter(r => r['Name-f'] === '休止時間');
+                
+                // 休止時間を先に表示
+                blockedTimeSlots.forEach(blockReservation => {
+                    const blockElement = document.createElement('div');
+                    blockElement.className = 'reservation-item-calendar blocked-time';
+                    blockElement.textContent = `${blockReservation.Time} 休止`;
+                    blockElement.style.backgroundColor = '#6c757d';
+                    blockElement.style.color = '#ffffff';
+                    blockElement.style.cursor = 'pointer';
+                    blockElement.title = `休止理由: ${blockReservation['Name-s'] || '設定済み'}`;
+                    
+                    // クリックイベント（詳細表示）
+                    blockElement.addEventListener('click', () => {
+                        showBlockedTimeDetail(blockReservation);
+                    });
+                    
+                    reservationsContainer.appendChild(blockElement);
+                });
+                
+                // 通常予約を表示
+                normalReservations.forEach(reservation => {
+                    const reservationElement = document.createElement('button');
+                    reservationElement.className = 'reservation-item-calendar';
+                    
+                    const customerName = reservation['Name-f'] || '';
+                    reservationElement.textContent = `${reservation.Time} ${customerName}`;
+                    
+                    // 安全な座席タイプカラー取得
+                    const seatTypeColor = getSeatTypeColorSafe(reservation.Menu);
+                    reservationElement.style.backgroundColor = seatTypeColor;
+                    reservationElement.style.color = '#ffffff';
+                    
+                    reservationElement.addEventListener('click', () => {
+                        showReservationDetail(reservation);
+                    });
+                    
+                    reservationsContainer.appendChild(reservationElement);
+                });
+            }
+        }
+        
+        dayElement.appendChild(reservationsContainer);
+        calendarGrid.appendChild(dayElement);
+        
+        currentDateObj.setDate(currentDateObj.getDate() + 1);
+    }
+    
+    console.log('[カレンダー] カレンダー描画完了');
+    
+    // カレンダー描画後に座席タイプ凡例も更新
+    renderSeatTypeLegend();
+}
+
+// 座席タイプ凡例描画
+function renderSeatTypeLegend() {
+    if (!seatTypeLegend) return;
+    
+    seatTypeLegend.innerHTML = '<h4>座席タイプ凡例</h4>';
+    
+    const legendGrid = document.createElement('div');
+    legendGrid.className = 'legend-grid';
+    
+    // currentSeatTypesが存在し、オブジェクトであることを確認
+    if (currentSeatTypes && typeof currentSeatTypes === 'object') {
+        const seatTypeNames = Object.keys(currentSeatTypes);
+        
+        if (seatTypeNames.length > 0) {
+            seatTypeNames.forEach((seatTypeName, index) => {
+                const color = getSeatTypeColorByIndex(index);
+                
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                
+                const colorBox = document.createElement('div');
+                colorBox.className = 'legend-color';
+                colorBox.style.backgroundColor = color;
+                
+                const seatTypeNameSpan = document.createElement('span');
+                seatTypeNameSpan.textContent = seatTypeName;
+                
+                legendItem.appendChild(colorBox);
+                legendItem.appendChild(seatTypeNameSpan);
+                legendGrid.appendChild(legendItem);
+            });
+        } else {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'legend-empty';
+            emptyMessage.textContent = '座席タイプが登録されていません';
+            legendGrid.appendChild(emptyMessage);
+        }
+    } else {
+        // 座席タイプデータがまだ読み込まれていない場合
+        const loadingMessage = document.createElement('div');
+        loadingMessage.className = 'legend-empty';
+        loadingMessage.textContent = '座席タイプを読み込み中...';
+        legendGrid.appendChild(loadingMessage);
+    }
+    
+    seatTypeLegend.appendChild(legendGrid);
+}
+
+// 前月に移動
+function goToPrevMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+}
+
+// 次月に移動
+function goToNextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+}
+
+// 予約詳細表示（座席タイプ対応版）
+function showReservationDetail(reservation) {
+    currentReservationDetail = reservation;
+    
+    const customerName = reservation['Name-f'] || '';
+    const phoneNumber = reservation['Name-s'] || '';
+    const email = reservation.mail || '';
+    
+    if (detailId) detailId.textContent = reservation.id;
+    if (detailDate) detailDate.textContent = reservation.date;
+    if (detailTime) detailTime.textContent = reservation.Time;
+    if (detailName) detailName.textContent = customerName;
+    if (detailPhone) detailPhone.textContent = phoneNumber;
+    if (detailSeatType) detailSeatType.textContent = reservation.Menu || '';
+    if (detailEmail) detailEmail.textContent = email;
+    
+    // 同行者や管理者追加の場合はメールボタンを無効化
+    if (detailMailBtn) {
+        if (email === '同行者' || email === '管理者追加') {
+            detailMailBtn.disabled = true;
+            detailMailBtn.textContent = email === '同行者' ? 'メール送信（同行者）' : 'メール送信（管理者追加）';
+            detailMailBtn.style.opacity = '0.5';
+            detailMailBtn.style.cursor = 'not-allowed';
+        } else {
+            detailMailBtn.disabled = false;
+            detailMailBtn.textContent = 'メール送信';
+            detailMailBtn.style.opacity = '1';
+            detailMailBtn.style.cursor = 'pointer';
+        }
+    }
+    
+    if (reservationDetailModal) {
+        reservationDetailModal.classList.add('active');
     }
 }
 
-@media (max-width: 768px) {
-    .calendar-day {
-        min-height: 80px;
-    }
+// 休止時間詳細表示
+function showBlockedTimeDetail(blockReservation) {
+    const reason = blockReservation['Name-s'] || '理由未設定';
+    const message = `予約休止時間帯\n\n日付: ${blockReservation.date}\n時間: ${blockReservation.Time}\n理由: ${reason}`;
     
-    .day-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 2px;
-    }
-    
-    /* モバイル用時間スロット調整 */
-    .time-slots-grid {
-        grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
-        gap: 6px;
-    }
-    
-    .time-slot-btn.admin-time-slot {
-        font-size: 12px;
-        padding: 6px 4px;
-        min-height: 32px;
-    }
-    
-    .custom-time-btn {
-        min-height: 45px !important;
-        font-size: 13px !important;
-    }
-    
-    .add-reservation-buttons {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .add-reservation-buttons .btn {
-        min-width: auto;
-        width: 100%;
-    }
-    
-    .custom-time-modal-content {
-        padding: 20px;
-        width: 95%;
-    }
-    
-    .custom-time-input {
-        width: 130px;
-        font-size: 16px;
-    }
-    
-    .custom-time-buttons {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .custom-time-btn-confirm,
-    .custom-time-btn-cancel {
-        width: 100%;
+    if (confirm(message + '\n\nこの休止設定を解除しますか？')) {
+        handleRemoveBlockedTime(blockReservation);
     }
 }
 
-@media (max-width: 320px) {
-    .time-slots-grid {
-        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-        gap: 4px;
+// 休止時間解除処理
+async function handleRemoveBlockedTime(blockReservation) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/reservations/${blockReservation.id}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 2 })
+        });
+
+        if (response.ok) {
+            await loadReservations();
+            
+            const calendarTab = document.getElementById('calendar-tab');
+            if (calendarTab && calendarTab.classList.contains('active')) {
+                renderCalendar();
+            }
+            
+            alert('休止設定を解除しました。');
+        } else {
+            const errorData = await response.text();
+            alert(`休止設定の解除に失敗しました。\nステータス: ${response.status}\nエラー: ${errorData}`);
+        }
+    } catch (error) {
+        console.error('休止設定解除エラー:', error);
+        
+        if (error.message.includes('fetch')) {
+            alert('ローカル開発環境のため、APIに接続できません。\n実際の本番環境では正常に動作します。');
+            
+            // デモ用のローカル処理
+            const reservationIndex = reservations.findIndex(r => r.id === blockReservation.id);
+            if (reservationIndex >= 0) {
+                reservations[reservationIndex].states = 2;
+                if (typeof displayReservations === 'function') {
+                    displayReservations();
+                }
+                
+                const calendarTab = document.getElementById('calendar-tab');
+                if (calendarTab && calendarTab.classList.contains('active')) {
+                    renderCalendar();
+                }
+                
+                alert('デモ用：休止設定を解除しました（ローカルのみ）');
+            }
+        } else {
+            alert(`休止設定の解除に失敗しました。\nエラー: ${error.message}`);
+        }
+    }
+}
+
+// 予約詳細モーダルを閉じる
+function closeReservationDetailModal() {
+    if (reservationDetailModal) {
+        reservationDetailModal.classList.remove('active');
+    }
+    currentReservationDetail = null;
+}
+
+// 詳細画面からキャンセル
+function handleDetailCancel() {
+    if (!currentReservationDetail) return;
+    
+    const reservationToCancel = { ...currentReservationDetail };
+    closeReservationDetailModal();
+    
+    if (typeof showConfirm === 'function') {
+        showConfirm('予約キャンセル', '本当にこの予約をキャンセルしますか？', async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/reservations/${reservationToCancel.id}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 2 })
+                });
+
+                if (response.ok) {
+                    await loadReservations();
+                    
+                    const calendarTab = document.getElementById('calendar-tab');
+                    if (calendarTab && calendarTab.classList.contains('active')) {
+                        renderCalendar();
+                    }
+                    
+                    alert('予約をキャンセルしました。');
+                } else {
+                    const errorData = await response.text();
+                    alert(`予約のキャンセルに失敗しました。\nステータス: ${response.status}\nエラー: ${errorData}`);
+                }
+            } catch (error) {
+                console.error('キャンセル処理例外:', error);
+                
+                if (error.message.includes('fetch')) {
+                    alert('ローカル開発環境のため、APIに接続できません。\n実際の本番環境では正常に動作します。');
+                    
+                    const reservationIndex = reservations.findIndex(r => r.id === reservationToCancel.id);
+                    if (reservationIndex >= 0) {
+                        reservations[reservationIndex].states = 2;
+                        if (typeof displayReservations === 'function') {
+                            displayReservations();
+                        }
+                        
+                        const calendarTab = document.getElementById('calendar-tab');
+                        if (calendarTab && calendarTab.classList.contains('active')) {
+                            renderCalendar();
+                        }
+                        
+                        alert('デモ用：予約をキャンセルしました（ローカルのみ）');
+                    }
+                } else {
+                    alert(`予約のキャンセルに失敗しました。\nエラー: ${error.message}`);
+                }
+            }
+        });
+    }
+}
+
+// 詳細画面からメール送信
+function handleDetailMail() {
+    if (!currentReservationDetail) return;
+    
+    const customerName = currentReservationDetail['Name-f'] || '';
+    const email = currentReservationDetail.mail || '';
+    
+    closeReservationDetailModal();
+    
+    if (email === '同行者') {
+        alert('この方は同行者のため、メールを送信できません。');
+        return;
     }
     
-    .time-slot-btn.admin-time-slot {
-        font-size: 11px;
-        padding: 4px 2px;
-        min-height: 28px;
+    if (email === '管理者追加') {
+        alert('この予約は管理者が追加したもので、メールアドレスが設定されていません。');
+        return;
     }
     
-    .custom-time-input {
-        width: 120px;
-        font-size: 14px;
-        padding: 10px;
-    }
+    currentMailRecipient = email;
+    currentCustomerName = customerName;
     
-    .add-reservation-btn {
-        padding: 8px 12px;
-        font-size: 13px;
-        min-height: 40px;
+    const mailSubjectInput = document.getElementById('mail-subject');
+    const mailBodyInput = document.getElementById('mail-body');
+    const mailTemplatesListDiv = document.getElementById('mail-templates-list');
+    
+    if (mailSubjectInput) mailSubjectInput.value = '';
+    if (mailBodyInput) mailBodyInput.value = '';
+    
+    if (mailTemplatesListDiv) {
+        mailTemplatesListDiv.innerHTML = Object.keys(mailTemplates).map(templateName => {
+            const template = mailTemplates[templateName];
+            const previewText = template.title.length > 50 ? 
+                template.title.substring(0, 50) + '...' : template.title;
+            
+            return `
+                <div class="mail-template-item" onclick="selectMailTemplate('${templateName}')">
+                    <div class="mail-template-name">${templateName}</div>
+                    <div class="mail-template-preview">${previewText}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    if (mailModal) {
+        mailModal.classList.add('active');
     }
 }
