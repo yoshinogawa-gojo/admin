@@ -365,12 +365,12 @@ function addFallbackMenuOptions() {
         { name: 'パーマ', worktime: '90', fare: '8000' }
     ];
     
-    addReservationMenuSelect.innerHTML = '<option value="">メニューを選択してください（フォールバック）</option>';
+    addReservationMenuSelect.innerHTML = '<option value="">座席タイプを選択してください（フォールバック）</option>';
     
     fallbackMenus.forEach(menu => {
         const option = document.createElement('option');
         option.value = menu.name;
-        option.textContent = `${menu.name} - ${menu.worktime}分 - ¥${menu.fare}`;
+        option.textContent = `${menu.name} - ${menu.worktime}人`;
         addReservationMenuSelect.appendChild(option);
     });
     
@@ -429,7 +429,6 @@ async function displayAvailableTimeSlots(date) {
             </div>
         `;
         addReservationTimeslotsDiv.appendChild(adminNoticeDiv);
-        
         // 時間スロット用コンテナ
         const timeSlotsContainer = document.createElement('div');
         timeSlotsContainer.className = 'time-slots-grid';
@@ -488,7 +487,7 @@ async function displayAvailableTimeSlots(date) {
                 timeSlotBtn.addEventListener('click', () => {
                     const confirmMessage = isBlockedTime ? 
                         `この時間は休止設定されています。\n時間: ${time}\n理由: ${existingReservation['Name-s']}\n\n管理者権限で強制追加しますか？` :
-                        `この時間は既に予約があります。\n時間: ${time}\nお客様: ${customerName}\nメニュー: ${existingReservation.Menu || '不明'}\n\n管理者権限で重複追加しますか？`;
+                        `この時間は既に予約があります。\n時間: ${time}\nお客様: ${customerName}\n座席タイプ: ${existingReservation.Menu || '不明'}\n\n管理者権限で重複追加しますか？`;
                     
                     if (confirm(confirmMessage)) {
                         selectTimeSlot(time, timeSlotBtn, false, true);
