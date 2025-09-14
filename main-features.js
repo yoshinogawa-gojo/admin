@@ -236,7 +236,7 @@ function renderReservationsList(reservationsList, type) {
                     <div><strong>お名前:</strong> ${customerName}</div>
                     <div><strong>電話番号:</strong> ${phoneNumber}</div>
                     <div><strong>座席タイプ:</strong> ${reservation.Menu || ''}</div>
-                    <div><strong>作業時間:</strong> ${reservation.WorkTime || ''}分</div>
+                    <div><strong>人数:</strong> ${reservation.WorkTime || ''}人</div>
                     <div><strong>メール:</strong> ${email}</div>
                 </div>
                 <div class="reservation-actions">
