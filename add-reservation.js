@@ -305,7 +305,6 @@ function populateMenuOptions() {
                 }, 500);
             }).catch(error => {
                 console.error('[予約追加] メニューデータ再読み込みエラー:', error);
-                // フォールバック: デフォルトメニューを表示
                 addFallbackMenuOptions();
             });
         } else {
@@ -340,7 +339,7 @@ function populateMenuOptions() {
             const fare = menu.fare || 0;
             const fareText = typeof fare === 'number' ? fare.toLocaleString() : fare;
             
-            option.textContent = `${menuName} - ${worktime}分 - ¥${fareText}`;
+            option.textContent = `${menuName} - ${worktime}人`;
             addReservationMenuSelect.appendChild(option);
             
             console.log(`[予約追加] メニューオプション追加: ${menuName}`);
