@@ -375,8 +375,7 @@ function displayMenus(menus) {
                 <div class="menu-header">
                     <span class="menu-name">${menuName}</span>
                     <div>
-                        <span class="menu-worktime">${menu.worktime}分</span>
-                        <span class="menu-fare">${menu.fare || 0}円</span>
+                        <span class="menu-worktime">${menu.worktime}人</span>
                     </div>
                 </div>
                 <p style="white-space: pre-line;">${menu.text}</p>
