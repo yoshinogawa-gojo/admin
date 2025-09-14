@@ -218,7 +218,7 @@
         </div>
     </div>
 
-    <!-- 新しい予約追加モーダル -->
+    <!-- 新しい予約追加モーダル（人数入力フィールド追加版） -->
     <div id="add-reservation-modal" class="modal">
         <div class="modal-content">
             <h3>新規予約追加</h3>
@@ -250,6 +250,14 @@
                     </select>
                 </div>
 
+                <!-- 人数入力フィールドを追加 -->
+                <div class="form-group">
+                    <label for="add-reservation-people">人数:</label>
+                    <input type="number" id="add-reservation-people" min="1" max="100" value="1" required 
+                           placeholder="利用人数を入力してください" 
+                           style="width: 100%; padding: 12px 15px; border: 2px solid #555; border-radius: 8px; background-color: #4a4a4a; color: #ffffff; font-size: 16px;">
+                </div>
+
                 <div class="form-group">
                     <label>時間:</label>
                     <div id="add-reservation-timeslots" class="time-slots-grid">
@@ -261,7 +269,8 @@
                     <h4>予約について</h4>
                     <ul>
                         <li>管理者による手動予約追加です</li>
-                        <li>お名前のみ必須、電話番号・メールアドレスは任意です</li>
+                        <li>お名前と人数は必須、電話番号・メールアドレスは任意です</li>
+                        <li>人数は座席タイプの収容人数と関係なく自由に設定できます</li>
                         <li>予約番号は自動生成されます</li>
                     </ul>
                 </div>
