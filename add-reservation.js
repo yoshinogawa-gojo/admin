@@ -1,4 +1,4 @@
-// 予約追加機能のJavaScript（修正版 - UI改善・重複処理防止）
+// 予約追加機能のJavaScript（修正版 - 人数入力対応）
 
 // DOM要素（グローバルで取得）
 let addReservationModal = null;
@@ -10,6 +10,7 @@ let addReservationNameInput = null;
 let addReservationPhoneInput = null;
 let addReservationEmailInput = null;
 let addReservationMenuSelect = null;
+let addReservationPeopleInput = null; // 人数入力フィールドを追加
 let addReservationTimeslotsDiv = null;
 
 // 選択された時間を保存する変数
@@ -38,6 +39,7 @@ function getAddReservationElements() {
         phoneInput: document.getElementById('add-reservation-phone'),
         emailInput: document.getElementById('add-reservation-email'),
         menuSelect: document.getElementById('add-reservation-menu'),
+        peopleInput: document.getElementById('add-reservation-people'), // 人数入力フィールドを追加
         timeslotsDiv: document.getElementById('add-reservation-timeslots')
     };
 }
@@ -59,6 +61,7 @@ function initializeAddReservationFeature() {
     addReservationPhoneInput = elements.phoneInput;
     addReservationEmailInput = elements.emailInput;
     addReservationMenuSelect = elements.menuSelect;
+    addReservationPeopleInput = elements.peopleInput; // 人数入力フィールドを追加
     addReservationTimeslotsDiv = elements.timeslotsDiv;
     
     console.log('[予約追加] DOM要素取得結果:', {
@@ -71,6 +74,7 @@ function initializeAddReservationFeature() {
         phoneInput: !!addReservationPhoneInput,
         emailInput: !!addReservationEmailInput,
         menuSelect: !!addReservationMenuSelect,
+        peopleInput: !!addReservationPeopleInput, // 人数入力フィールドを追加
         timeslotsDiv: !!addReservationTimeslotsDiv
     });
     
@@ -159,6 +163,7 @@ function openAddReservationModal() {
         addReservationPhoneInput = elements.phoneInput;
         addReservationEmailInput = elements.emailInput;
         addReservationMenuSelect = elements.menuSelect;
+        addReservationPeopleInput = elements.peopleInput; // 人数入力フィールドを追加
         addReservationTimeslotsDiv = elements.timeslotsDiv;
     }
     
@@ -258,6 +263,7 @@ function resetAddReservationForm() {
     if (addReservationPhoneInput) addReservationPhoneInput.value = '';
     if (addReservationEmailInput) addReservationEmailInput.value = '';
     if (addReservationMenuSelect) addReservationMenuSelect.value = '';
+    if (addReservationPeopleInput) addReservationPeopleInput.value = '1'; // デフォルト値を1に設定
     if (addReservationTimeslotsDiv) addReservationTimeslotsDiv.innerHTML = '';
     
     selectedTimeSlot = null;
@@ -290,7 +296,7 @@ function populateMenuOptions() {
     });
     
     // 初期化
-    addReservationMenuSelect.innerHTML = '<option value="">メニューを選択してください</option>';
+    addReservationMenuSelect.innerHTML = '<option value="">座席タイプを選択してください</option>';
     
     // currentMenusが存在しない場合の対処
     if (!currentMenus || typeof currentMenus !== 'object') {
@@ -319,7 +325,7 @@ function populateMenuOptions() {
     
     if (menuKeys.length === 0) {
         console.warn('[予約追加] メニューが登録されていません');
-        addReservationMenuSelect.innerHTML = '<option value="">メニューが登録されていません</option>';
+        addReservationMenuSelect.innerHTML = '<option value="">座席タイプが登録されていません</option>';
         return;
     }
     
@@ -339,7 +345,7 @@ function populateMenuOptions() {
             const fare = menu.fare || 0;
             const fareText = typeof fare === 'number' ? fare.toLocaleString() : fare;
             
-            option.textContent = `${menuName} - ${worktime}人`;
+            option.textContent = `${menuName} - 収容人数${worktime}人`;
             addReservationMenuSelect.appendChild(option);
             
             console.log(`[予約追加] メニューオプション追加: ${menuName}`);
@@ -359,9 +365,9 @@ function addFallbackMenuOptions() {
     
     // デフォルトメニューを追加（実際のデータがない場合の応急処置）
     const fallbackMenus = [
-        { name: 'カット', worktime: '30', fare: '3000' },
-        { name: 'カット＋シャンプー', worktime: '45', fare: '4000' },
-        { name: 'パーマ', worktime: '90', fare: '8000' }
+        { name: 'VIP席', worktime: '4', fare: '8000' },
+        { name: 'カウンター席', worktime: '2', fare: '5000' },
+        { name: '一般席', worktime: '6', fare: '3000' }
     ];
     
     addReservationMenuSelect.innerHTML = '<option value="">座席タイプを選択してください（フォールバック）</option>';
@@ -369,7 +375,7 @@ function addFallbackMenuOptions() {
     fallbackMenus.forEach(menu => {
         const option = document.createElement('option');
         option.value = menu.name;
-        option.textContent = `${menu.name} - ${menu.worktime}人`;
+        option.textContent = `${menu.name} - 収容人数${menu.worktime}人`;
         addReservationMenuSelect.appendChild(option);
     });
     
@@ -777,12 +783,18 @@ function validateEmail(email) {
     return emailRegex.test(email);
 }
 
+// 人数のバリデーション（新規追加）
+function validatePeopleCount(peopleCount) {
+    const count = parseInt(peopleCount);
+    return !isNaN(count) && count > 0 && count <= 100;
+}
+
 // 予約番号生成
 function generateReservationNumber() {
     return Math.floor(Math.random() * 90000000) + 10000000;
 }
 
-// 予約追加処理（重複処理防止版）
+// 予約追加処理（重複処理防止版・人数対応版）
 async function handleAddReservation() {
     console.log('[予約追加] 予約追加処理開始');
     
@@ -794,12 +806,13 @@ async function handleAddReservation() {
     
     isProcessingReservation = true;
     
-    // フォームの値を取得
+    // フォームの値を取得（人数フィールドを追加）
     const date = addReservationDateInput ? addReservationDateInput.value : '';
     const name = addReservationNameInput ? addReservationNameInput.value.trim() : '';
     const phone = addReservationPhoneInput ? addReservationPhoneInput.value.trim() : '';
     const email = addReservationEmailInput ? addReservationEmailInput.value.trim() : '';
     const menuName = addReservationMenuSelect ? addReservationMenuSelect.value : '';
+    const peopleCount = addReservationPeopleInput ? addReservationPeopleInput.value.trim() : '1'; // 人数を取得
     
     console.log('[予約追加] フォーム値確認:', {
         date: date,
@@ -807,11 +820,12 @@ async function handleAddReservation() {
         phone: phone,
         email: email,
         menuName: menuName,
+        peopleCount: peopleCount, // 人数をログに追加
         selectedTimeSlot: selectedTimeSlot
     });
     
-    // バリデーション
-    if (!date || !name || !menuName || !selectedTimeSlot) {
+    // バリデーション（人数チェックを追加）
+    if (!date || !name || !menuName || !selectedTimeSlot || !peopleCount) {
         alert('必須項目をすべて入力してください。\n（電話番号・メールアドレスは任意です）');
         isProcessingReservation = false;
         return;
@@ -821,6 +835,13 @@ async function handleAddReservation() {
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(date)) {
         alert('日付の形式が正しくありません（YYYY-MM-DD形式で入力してください）');
+        isProcessingReservation = false;
+        return;
+    }
+    
+    // 人数バリデーション（新規追加）
+    if (!validatePeopleCount(peopleCount)) {
+        alert('人数は1〜100の数値で入力してください。');
         isProcessingReservation = false;
         return;
     }
@@ -852,10 +873,9 @@ async function handleAddReservation() {
         
         // デフォルトメニューデータ（実際の運用では事前に定義しておく）
         const fallbackMenus = {
-            'カット': { worktime: 30, fare: 3000 },
-            'カット＋シャンプー': { worktime: 45, fare: 4000 },
-            'パーマ': { worktime: 90, fare: 8000 },
-            'カラー': { worktime: 120, fare: 10000 }
+            'VIP席': { worktime: 4, fare: 8000 },
+            'カウンター席': { worktime: 2, fare: 5000 },
+            '一般席': { worktime: 6, fare: 3000 }
         };
         
         selectedMenu = fallbackMenus[menuName];
@@ -863,7 +883,7 @@ async function handleAddReservation() {
         if (!selectedMenu) {
             // それでも見つからない場合はデフォルト値
             selectedMenu = {
-                worktime: 60,
+                worktime: 4,
                 fare: 5000
             };
             console.warn(`[予約追加] メニュー「${menuName}」が見つかりません。デフォルト値を使用します`);
@@ -898,14 +918,14 @@ async function handleAddReservation() {
             if (!phone) phoneField = '管理者追加（カスタム時間）';
         }
         
-        // 予約データを作成
+        // 予約データを作成（人数をWorkTimeとして保存）
         const reservationData = {
             reservationNumber: reservationNumber,
             Menu: menuName,
             "Name-f": name,
             "Name-s": phoneField,
             Time: selectedTimeSlot,
-            WorkTime: selectedMenu.worktime,
+            WorkTime: parseInt(peopleCount), // 入力された人数をWorkTimeとして保存
             date: date,
             mail: mailField,
             states: 0,
@@ -961,22 +981,22 @@ async function handleAddReservation() {
         }
         
         if (result.success) {
-            // 成功メッセージを準備
+            // 成功メッセージを準備（人数情報を追加）
             let successMessage = '';
             let successIcon = '';
             
             if (forceAddMode && isCustomTime) {
                 successIcon = '🛡️⏰';
-                successMessage = `管理者権限で強制追加しました\n（カスタム時間・重複対応）\n\n✅ 予約番号: ${reservationNumber}\n⏰ 時間: ${selectedTimeSlot}\n👤 お客様: ${name}`;
+                successMessage = `管理者権限で強制追加しました\n（カスタム時間・重複対応）\n\n✅ 予約番号: ${reservationNumber}\n⏰ 時間: ${selectedTimeSlot}\n👤 お客様: ${name}\n👥 人数: ${peopleCount}人`;
             } else if (forceAddMode) {
                 successIcon = '🛡️';
-                successMessage = `管理者権限で強制追加しました\n（重複時間対応）\n\n✅ 予約番号: ${reservationNumber}\n⏰ 時間: ${selectedTimeSlot}\n👤 お客様: ${name}`;
+                successMessage = `管理者権限で強制追加しました\n（重複時間対応）\n\n✅ 予約番号: ${reservationNumber}\n⏰ 時間: ${selectedTimeSlot}\n👤 お客様: ${name}\n👥 人数: ${peopleCount}人`;
             } else if (isCustomTime) {
                 successIcon = '⏰';
-                successMessage = `カスタム時間で予約を追加しました\n\n✅ 予約番号: ${reservationNumber}\n⏰ 時間: ${selectedTimeSlot}\n👤 お客様: ${name}`;
+                successMessage = `カスタム時間で予約を追加しました\n\n✅ 予約番号: ${reservationNumber}\n⏰ 時間: ${selectedTimeSlot}\n👤 お客様: ${name}\n👥 人数: ${peopleCount}人`;
             } else {
                 successIcon = '✅';
-                successMessage = `予約を追加しました\n\n✅ 予約番号: ${reservationNumber}\n⏰ 時間: ${selectedTimeSlot}\n👤 お客様: ${name}`;
+                successMessage = `予約を追加しました\n\n✅ 予約番号: ${reservationNumber}\n⏰ 時間: ${selectedTimeSlot}\n👤 お客様: ${name}\n👥 人数: ${peopleCount}人`;
             }
             
             // 成功時のボタン表示
