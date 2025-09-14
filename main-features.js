@@ -190,7 +190,7 @@ function handleClearSearch() {
     displayReservations();
 }
 
-// 予約リストHTML生成（電話番号対応版）
+// 予約リストHTML生成（人数表示対応版）
 function renderReservationsList(reservationsList, type) {
     if (!reservationsList || reservationsList.length === 0) {
         return '<p>予約がありません。</p>';
@@ -202,6 +202,9 @@ function renderReservationsList(reservationsList, type) {
         const customerName = reservation['Name-f'] || '';
         const phoneNumber = reservation['Name-s'] || '';
         const email = reservation.mail || '';
+        
+        // 人数情報を取得（WorkTimeから）
+        const peopleCount = reservation.WorkTime || 1;
         
         let actionsHTML = '';
         if (type === 'today') {
@@ -236,7 +239,7 @@ function renderReservationsList(reservationsList, type) {
                     <div><strong>お名前:</strong> ${customerName}</div>
                     <div><strong>電話番号:</strong> ${phoneNumber}</div>
                     <div><strong>座席タイプ:</strong> ${reservation.Menu || ''}</div>
-                    <div><strong>人数:</strong> ${reservation.WorkTime || ''}人</div>
+                    <div><strong>人数:</strong> ${peopleCount}人</div>
                     <div><strong>メール:</strong> ${email}</div>
                 </div>
                 <div class="reservation-actions">
