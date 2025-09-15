@@ -1,31 +1,20 @@
-// 予約追加機能のJavaScript（修正版 - 人数入力対応）
+// 改善された予約追加機能のJavaScript（シンプル版）
 
-// DOM要素（グローバルで取得）
+// DOM要素
 let addReservationModal = null;
 let addReservationBtn = null;
 let submitAddReservationBtn = null;
 let cancelAddReservationBtn = null;
 let addReservationDateInput = null;
+let addReservationTimeInput = null;
 let addReservationNameInput = null;
 let addReservationPhoneInput = null;
 let addReservationEmailInput = null;
 let addReservationMenuSelect = null;
-let addReservationPeopleInput = null; // 人数入力フィールドを追加
-let addReservationTimeslotsDiv = null;
-
-// 選択された時間を保存する変数
-let selectedTimeSlot = null;
-let isCustomTime = false;
-let forceAddMode = false;
+let addReservationPeopleInput = null;
 
 // 重複処理防止フラグ
 let isProcessingReservation = false;
-
-// 時間スロット設定
-const timeSlots = {
-    weekday: ['11:00', '11:30', '12:00', '12:30', '13:00', '14:30', '15:00'],
-    weekend: ['11:00', '11:30', '12:00', '12:30', '13:00', '14:30', '15:00', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00']
-};
 
 // DOM要素を動的に取得する関数
 function getAddReservationElements() {
@@ -35,12 +24,12 @@ function getAddReservationElements() {
         submitBtn: document.getElementById('submit-add-reservation-btn'),
         cancelBtn: document.getElementById('cancel-add-reservation-btn'),
         dateInput: document.getElementById('add-reservation-date'),
+        timeInput: document.getElementById('add-reservation-time'),
         nameInput: document.getElementById('add-reservation-name'),
         phoneInput: document.getElementById('add-reservation-phone'),
         emailInput: document.getElementById('add-reservation-email'),
         menuSelect: document.getElementById('add-reservation-menu'),
-        peopleInput: document.getElementById('add-reservation-people'), // 人数入力フィールドを追加
-        timeslotsDiv: document.getElementById('add-reservation-timeslots')
+        peopleInput: document.getElementById('add-reservation-people')
     };
 }
 
@@ -57,12 +46,12 @@ function initializeAddReservationFeature() {
     submitAddReservationBtn = elements.submitBtn;
     cancelAddReservationBtn = elements.cancelBtn;
     addReservationDateInput = elements.dateInput;
+    addReservationTimeInput = elements.timeInput;
     addReservationNameInput = elements.nameInput;
     addReservationPhoneInput = elements.phoneInput;
     addReservationEmailInput = elements.emailInput;
     addReservationMenuSelect = elements.menuSelect;
-    addReservationPeopleInput = elements.peopleInput; // 人数入力フィールドを追加
-    addReservationTimeslotsDiv = elements.timeslotsDiv;
+    addReservationPeopleInput = elements.peopleInput;
     
     console.log('[予約追加] DOM要素取得結果:', {
         modal: !!addReservationModal,
@@ -70,12 +59,12 @@ function initializeAddReservationFeature() {
         submitBtn: !!submitAddReservationBtn,
         cancelBtn: !!cancelAddReservationBtn,
         dateInput: !!addReservationDateInput,
+        timeInput: !!addReservationTimeInput,
         nameInput: !!addReservationNameInput,
         phoneInput: !!addReservationPhoneInput,
         emailInput: !!addReservationEmailInput,
         menuSelect: !!addReservationMenuSelect,
-        peopleInput: !!addReservationPeopleInput, // 人数入力フィールドを追加
-        timeslotsDiv: !!addReservationTimeslotsDiv
+        peopleInput: !!addReservationPeopleInput
     });
     
     // 既存のイベントリスナーを削除してから新しく設定
@@ -118,10 +107,6 @@ function initializeAddReservationFeature() {
         });
     }
     
-    if (addReservationDateInput) {
-        addReservationDateInput.addEventListener('change', handleDateChange);
-    }
-    
     // モーダル外クリックで閉じる
     if (addReservationModal) {
         addReservationModal.addEventListener('click', function(e) {
@@ -150,7 +135,7 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// 予約追加モーダルを開く（修正版 - メニュー読み込み強化）
+// 予約追加モーダルを開く
 function openAddReservationModal() {
     console.log('[予約追加] モーダルを開く');
     
@@ -159,12 +144,12 @@ function openAddReservationModal() {
         const elements = getAddReservationElements();
         addReservationModal = elements.modal;
         addReservationDateInput = elements.dateInput;
+        addReservationTimeInput = elements.timeInput;
         addReservationNameInput = elements.nameInput;
         addReservationPhoneInput = elements.phoneInput;
         addReservationEmailInput = elements.emailInput;
         addReservationMenuSelect = elements.menuSelect;
-        addReservationPeopleInput = elements.peopleInput; // 人数入力フィールドを追加
-        addReservationTimeslotsDiv = elements.timeslotsDiv;
+        addReservationPeopleInput = elements.peopleInput;
     }
     
     if (!addReservationModal) {
@@ -176,70 +161,28 @@ function openAddReservationModal() {
     // フォームをリセット
     resetAddReservationForm();
     
-    // 日付制限を撤廃（管理者権限）
+    // 今日の日付を設定
     if (addReservationDateInput) {
-        addReservationDateInput.removeAttribute('min');
-        addReservationDateInput.removeAttribute('max');
-        
-        const farPast = '1900-01-01';
-        const farFuture = '2099-12-31';
-        addReservationDateInput.setAttribute('min', farPast);
-        addReservationDateInput.setAttribute('max', farFuture);
-        
         const today = new Date();
         const todayString = today.toISOString().split('T')[0];
         addReservationDateInput.value = todayString;
         
-        addReservationDateInput.setCustomValidity('');
-        
-        console.log('[予約追加] 日付制限を撤廃');
+        console.log('[予約追加] 今日の日付を設定:', todayString);
     }
     
-    // メニューデータが利用可能かチェック
-    console.log('[予約追加] モーダル表示前のメニューデータ確認:', {
-        currentMenusExists: !!currentMenus,
-        currentMenusType: typeof currentMenus,
-        currentMenusKeys: currentMenus ? Object.keys(currentMenus) : 'なし'
-    });
-    
-    // メニューデータが不足している場合は先に読み込み
-    if (!currentMenus || typeof currentMenus !== 'object' || Object.keys(currentMenus).length === 0) {
-        console.warn('[予約追加] メニューデータが不足しています。読み込みを実行...');
+    // 現在時刻を設定
+    if (addReservationTimeInput) {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(Math.ceil(now.getMinutes() / 15) * 15).padStart(2, '0'); // 15分単位に切り上げ
+        const currentTime = `${hours}:${minutes}`;
+        addReservationTimeInput.value = currentTime;
         
-        // メニュー読み込み中メッセージを表示
-        if (addReservationMenuSelect) {
-            addReservationMenuSelect.innerHTML = '<option value="">メニューを読み込み中...</option>';
-            addReservationMenuSelect.disabled = true;
-        }
-        
-        // メニューデータを読み込み
-        if (typeof loadMenus === 'function') {
-            loadMenus().then(() => {
-                console.log('[予約追加] メニューデータ読み込み完了');
-                // メニューオプションを設定
-                if (addReservationMenuSelect) {
-                    addReservationMenuSelect.disabled = false;
-                }
-                populateMenuOptions();
-            }).catch(error => {
-                console.error('[予約追加] メニューデータ読み込みエラー:', error);
-                if (addReservationMenuSelect) {
-                    addReservationMenuSelect.disabled = false;
-                }
-                // フォールバックでデフォルトオプション設定
-                populateMenuOptions();
-            });
-        } else {
-            console.warn('[予約追加] loadMenus関数が見つかりません');
-            if (addReservationMenuSelect) {
-                addReservationMenuSelect.disabled = false;
-            }
-            populateMenuOptions();
-        }
-    } else {
-        // メニューデータが利用可能な場合は通常設定
-        populateMenuOptions();
+        console.log('[予約追加] 現在時刻を設定:', currentTime);
     }
+    
+    // メニューオプションを設定
+    populateMenuOptions();
     
     // モーダル表示
     addReservationModal.classList.add('active');
@@ -259,26 +202,24 @@ function closeAddReservationModal() {
 // フォームをリセット
 function resetAddReservationForm() {
     if (addReservationDateInput) addReservationDateInput.value = '';
+    if (addReservationTimeInput) addReservationTimeInput.value = '';
     if (addReservationNameInput) addReservationNameInput.value = '';
     if (addReservationPhoneInput) addReservationPhoneInput.value = '';
     if (addReservationEmailInput) addReservationEmailInput.value = '';
     if (addReservationMenuSelect) addReservationMenuSelect.value = '';
-    if (addReservationPeopleInput) addReservationPeopleInput.value = '1'; // デフォルト値を1に設定
-    if (addReservationTimeslotsDiv) addReservationTimeslotsDiv.innerHTML = '';
+    if (addReservationPeopleInput) addReservationPeopleInput.value = '1';
     
-    selectedTimeSlot = null;
-    isCustomTime = false;
-    forceAddMode = false;
-    isProcessingReservation = false; // 処理フラグもリセット
+    isProcessingReservation = false;
     
     if (submitAddReservationBtn) {
         submitAddReservationBtn.disabled = false;
         submitAddReservationBtn.textContent = '予約追加';
         submitAddReservationBtn.style.backgroundColor = '#28a745';
+        submitAddReservationBtn.style.cursor = 'pointer';
     }
 }
 
-// メニューオプションを設定（修正版 - デバッグ強化）
+// メニューオプションを設定
 function populateMenuOptions() {
     console.log('[予約追加] メニューオプション設定開始');
     
@@ -287,12 +228,10 @@ function populateMenuOptions() {
         return;
     }
     
-    // currentMenusの存在確認とデバッグ
     console.log('[予約追加] currentMenus確認:', {
         exists: !!currentMenus,
         type: typeof currentMenus,
-        keys: currentMenus ? Object.keys(currentMenus) : 'なし',
-        content: currentMenus
+        keys: currentMenus ? Object.keys(currentMenus) : 'なし'
     });
     
     // 初期化
@@ -302,7 +241,6 @@ function populateMenuOptions() {
     if (!currentMenus || typeof currentMenus !== 'object') {
         console.warn('[予約追加] currentMenusが無効です。再読み込みを試行します...');
         
-        // メニューデータを再読み込み
         if (typeof loadMenus === 'function') {
             loadMenus().then(() => {
                 console.log('[予約追加] メニューデータ再読み込み完了。再度オプション設定を試行...');
@@ -342,9 +280,6 @@ function populateMenuOptions() {
             option.value = menuName;
             
             const worktime = menu.worktime || '不明';
-            const fare = menu.fare || 0;
-            const fareText = typeof fare === 'number' ? fare.toLocaleString() : fare;
-            
             option.textContent = `${menuName} - 収容人数${worktime}人`;
             addReservationMenuSelect.appendChild(option);
             
@@ -365,9 +300,9 @@ function addFallbackMenuOptions() {
     
     // デフォルトメニューを追加（実際のデータがない場合の応急処置）
     const fallbackMenus = [
-        { name: 'VIP席', worktime: '4', fare: '8000' },
-        { name: 'カウンター席', worktime: '2', fare: '5000' },
-        { name: '一般席', worktime: '6', fare: '3000' }
+        { name: 'VIP席', worktime: '4' },
+        { name: 'カウンター席', worktime: '2' },
+        { name: '一般席', worktime: '6' }
     ];
     
     addReservationMenuSelect.innerHTML = '<option value="">座席タイプを選択してください（フォールバック）</option>';
@@ -380,476 +315,6 @@ function addFallbackMenuOptions() {
     });
     
     console.log('[予約追加] フォールバックメニュー設定完了');
-}
-
-// 日付変更時の処理
-async function handleDateChange() {
-    const selectedDate = addReservationDateInput ? addReservationDateInput.value : '';
-    
-    if (!selectedDate) {
-        if (addReservationTimeslotsDiv) {
-            addReservationTimeslotsDiv.innerHTML = '';
-        }
-        return;
-    }
-    
-    // 休業日チェック
-    if (holidays && holidays.includes(selectedDate)) {
-        if (addReservationTimeslotsDiv) {
-            addReservationTimeslotsDiv.innerHTML = '<div style="color: #dc3545; text-align: center; padding: 20px;">この日は休業日です</div>';
-        }
-        return;
-    }
-    
-    // 時間スロットを表示
-    await displayAvailableTimeSlots(selectedDate);
-}
-
-// 利用可能な時間スロットを表示（エラーハンドリング改善版）
-async function displayAvailableTimeSlots(date) {
-    if (!addReservationTimeslotsDiv) return;
-    
-    addReservationTimeslotsDiv.innerHTML = '<div style="color: #ffffff; text-align: center; padding: 10px;">時間を確認しています...</div>';
-    
-    let dayReservations = [];
-    
-    try {
-        // 既存の予約を取得（エラーハンドリング強化）
-        const response = await fetch(`${API_BASE_URL}/reservations`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            },
-            // 5秒でタイムアウト
-            signal: AbortSignal.timeout(5000)
-        });
-        
-        if (response.ok) {
-            const allReservations = await response.json();
-            dayReservations = Array.isArray(allReservations) ? 
-                allReservations.filter(r => r.date === date && r.states === 0) : [];
-            
-            console.log(`[予約追加] ${date}の既存予約: ${dayReservations.length}件`);
-        } else {
-            console.warn(`[予約追加] 予約データ取得失敗: HTTP ${response.status}`);
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-    } catch (error) {
-        console.warn('[予約追加] 予約データ取得エラー:', error.message);
-        
-        // エラーの種類に応じて処理を分岐
-        if (error.name === 'AbortError' || error.name === 'TimeoutError') {
-            console.log('[予約追加] タイムアウト - オフラインモードで続行');
-        } else if (error.message.includes('Failed to fetch') || 
-                   error.message.includes('NetworkError') ||
-                   error.message.includes('ERR_INTERNET_DISCONNECTED')) {
-            console.log('[予約追加] ネットワークエラー - オフラインモードで続行');
-        } else {
-            console.log('[予約追加] その他のエラー - オフラインモードで続行');
-        }
-        
-        // ローカルのreservations配列から取得を試行
-        if (typeof reservations !== 'undefined' && Array.isArray(reservations)) {
-            dayReservations = reservations.filter(r => r.date === date && r.states === 0);
-            console.log(`[予約追加] ローカルデータから取得: ${dayReservations.length}件`);
-        } else {
-            console.log('[予約追加] ローカルデータなし - 空の状態で続行');
-            dayReservations = [];
-        }
-    }
-    
-    try {
-        // 平日・土日祝の判定
-        const isWeekend = isWeekendOrHoliday(date);
-        const availableSlots = isWeekend ? timeSlots.weekend : timeSlots.weekday;
-        
-        addReservationTimeslotsDiv.innerHTML = '';
-        
-        // 管理者通知メッセージを追加（オフライン対応版）
-        const adminNoticeDiv = document.createElement('div');
-        const connectionStatus = dayReservations.length > 0 || (typeof reservations !== 'undefined' && reservations.length > 0) ? 
-            '' : '<br><small style="color: #ffc107;">⚠️ オフライン - 重複チェック無効</small>';
-        
-        adminNoticeDiv.innerHTML = `
-            <div style="background-color: #17a2b8; color: #ffffff; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; text-align: center; font-size: 14px;">
-                <strong>🛡️ 管理者モード</strong><br>
-                <small>予約済み時間も強制追加可能${connectionStatus}</small>
-            </div>
-        `;
-        addReservationTimeslotsDiv.appendChild(adminNoticeDiv);
-        
-        // 時間スロット用コンテナ
-        const timeSlotsContainer = document.createElement('div');
-        timeSlotsContainer.className = 'time-slots-grid';
-        timeSlotsContainer.style.cssText = `
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-            gap: 8px;
-            margin-bottom: 15px;
-        `;
-        
-        // 時間スロットボタンを生成（エラーハンドリング対応版）
-        availableSlots.forEach(time => {
-            const timeSlotBtn = document.createElement('button');
-            timeSlotBtn.className = 'time-slot-btn admin-time-slot';
-            timeSlotBtn.textContent = time;
-            timeSlotBtn.type = 'button';
-            
-            // 基本スタイル
-            timeSlotBtn.style.cssText = `
-                background-color: #4a4a4a;
-                color: #ffffff;
-                border: 2px solid #555;
-                border-radius: 6px;
-                padding: 8px 6px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                font-size: 13px;
-                font-weight: 500;
-                text-align: center;
-                min-height: 36px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            `;
-            
-            const existingReservation = dayReservations.find(r => r.Time === time);
-            const isBooked = !!existingReservation;
-            
-            if (isBooked) {
-                timeSlotBtn.classList.add('admin-override');
-                timeSlotBtn.style.backgroundColor = '#ffc107';
-                timeSlotBtn.style.borderColor = '#ffc107';
-                timeSlotBtn.style.color = '#000000';
-                
-                const customerName = existingReservation['Name-f'] || '名前なし';
-                const isBlockedTime = existingReservation['Name-f'] === '休止時間';
-                
-                if (isBlockedTime) {
-                    timeSlotBtn.innerHTML = `${time}<br><small>(休止)</small>`;
-                    timeSlotBtn.title = `休止設定: ${existingReservation['Name-s'] || '理由未設定'}`;
-                } else {
-                    timeSlotBtn.innerHTML = `${time}<br><small>(${customerName.substring(0, 4)})</small>`;
-                    timeSlotBtn.title = `既存予約: ${customerName} - ${existingReservation.Menu || 'メニュー不明'}`;
-                }
-                
-                timeSlotBtn.addEventListener('click', () => {
-                    const confirmMessage = isBlockedTime ? 
-                        `この時間は休止設定されています。\n時間: ${time}\n理由: ${existingReservation['Name-s']}\n\n管理者権限で強制追加しますか？` :
-                        `この時間は既に予約があります。\n時間: ${time}\nお客様: ${customerName}\n座席タイプ: ${existingReservation.Menu || '不明'}\n\n管理者権限で重複追加しますか？`;
-                    
-                    if (confirm(confirmMessage)) {
-                        selectTimeSlot(time, timeSlotBtn, false, true);
-                    }
-                });
-            } else {
-                // 空き時間のクリックイベント
-                timeSlotBtn.addEventListener('click', () => selectTimeSlot(time, timeSlotBtn, false, false));
-                
-                // ホバー効果
-                timeSlotBtn.addEventListener('mouseenter', function() {
-                    if (!this.classList.contains('selected')) {
-                        this.style.backgroundColor = '#525252';
-                        this.style.borderColor = '#28a745';
-                        this.style.transform = 'translateY(-1px)';
-                    }
-                });
-                
-                timeSlotBtn.addEventListener('mouseleave', function() {
-                    if (!this.classList.contains('selected')) {
-                        this.style.backgroundColor = '#4a4a4a';
-                        this.style.borderColor = '#555';
-                        this.style.transform = 'translateY(0)';
-                    }
-                });
-            }
-            
-            timeSlotsContainer.appendChild(timeSlotBtn);
-        });
-        
-        addReservationTimeslotsDiv.appendChild(timeSlotsContainer);
-        
-        // カスタム時間ボタンを追加
-        const customTimeBtn = document.createElement('button');
-        customTimeBtn.className = 'time-slot-btn custom-time-btn';
-        customTimeBtn.innerHTML = `
-            <span style="font-size: 14px;">⏰</span><br>
-            <small>カスタム時間</small>
-        `;
-        customTimeBtn.type = 'button';
-        customTimeBtn.style.cssText = `
-            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-            border: 2px solid #6c5ce7;
-            color: #ffffff;
-            border-radius: 8px;
-            padding: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            text-align: center;
-            min-height: 50px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-top: 10px;
-            width: 100%;
-            box-shadow: 0 2px 4px rgba(108, 92, 231, 0.3);
-        `;
-        
-        customTimeBtn.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-            this.style.boxShadow = '0 4px 12px rgba(108, 92, 231, 0.4)';
-        });
-        
-        customTimeBtn.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '0 2px 4px rgba(108, 92, 231, 0.3)';
-        });
-        
-        customTimeBtn.addEventListener('click', () => openCustomTimeModal(dayReservations));
-        addReservationTimeslotsDiv.appendChild(customTimeBtn);
-        
-        console.log('[予約追加] 時間スロット表示完了');
-        
-    } catch (error) {
-        console.error('[予約追加] 時間スロット表示エラー:', error);
-        
-        // フォールバック：カスタム時間入力のみ表示
-        addReservationTimeslotsDiv.innerHTML = `
-            <div style="color: #ffc107; text-align: center; padding: 15px; background-color: #444; border-radius: 8px; margin-bottom: 15px;">
-                <strong>⚠️ オフラインモード</strong><br>
-                <small>予約データを取得できませんが、時間入力は可能です</small>
-            </div>
-            <div style="background-color: #3a3a3a; padding: 20px; border-radius: 8px; border: 2px solid #6c5ce7;">
-                <div style="color: #6c5ce7; font-weight: bold; margin-bottom: 15px; text-align: center; font-size: 16px;">
-                    ⏰ 時間を入力してください
-                </div>
-                <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                    <input type="time" id="fallback-time-input" 
-                           style="padding: 12px; border: 2px solid #6c5ce7; border-radius: 8px; background-color: #ffffff; color: #333; font-size: 18px; font-weight: bold; text-align: center; width: 150px;"
-                           value="${new Date().toTimeString().substr(0, 5)}">
-                    <button type="button" onclick="handleFallbackTimeSet()" 
-                            style="background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: #ffffff; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px;">
-                        時間を設定
-                    </button>
-                </div>
-                <div id="fallback-selected-time" style="text-align: center; margin-top: 15px; color: #28a745; font-weight: bold; font-size: 16px;">
-                    <!-- 選択された時間がここに表示されます -->
-                </div>
-            </div>
-        `;
-        
-        // フォールバック用のグローバル関数を定義
-        window.handleFallbackTimeSet = function() {
-            const timeInput = document.getElementById('fallback-time-input');
-            const display = document.getElementById('fallback-selected-time');
-            
-            if (timeInput && timeInput.value) {
-                selectTimeSlot(timeInput.value, null, true, false);
-                if (display) {
-                    display.innerHTML = `✅ 選択された時間: ${timeInput.value}`;
-                }
-            }
-        };
-    }
-}
-
-// 日本の祝日を判定
-function isWeekendOrHoliday(dateString) {
-    const date = new Date(dateString + 'T00:00:00');
-    const dayOfWeek = date.getDay();
-    return dayOfWeek === 0 || dayOfWeek === 6;
-}
-
-// 時間スロットを選択
-function selectTimeSlot(time, buttonElement, isCustom = false, forceAdd = false) {
-    const allTimeSlotBtns = addReservationTimeslotsDiv ? addReservationTimeslotsDiv.querySelectorAll('.time-slot-btn') : [];
-    allTimeSlotBtns.forEach(btn => {
-        btn.classList.remove('selected');
-        if (!btn.classList.contains('admin-override')) {
-            btn.style.backgroundColor = '#4a4a4a';
-            btn.style.borderColor = '#555';
-            btn.style.color = '#ffffff';
-            btn.style.transform = 'translateY(0)';
-        }
-    });
-    
-    if (buttonElement) {
-        buttonElement.classList.add('selected');
-        if (!forceAdd) {
-            buttonElement.style.backgroundColor = '#28a745';
-            buttonElement.style.borderColor = '#28a745';
-            buttonElement.style.color = '#ffffff';
-            buttonElement.style.transform = 'translateY(-2px)';
-            buttonElement.style.boxShadow = '0 4px 8px rgba(40, 167, 69, 0.3)';
-        }
-    }
-    
-    selectedTimeSlot = time;
-    isCustomTime = isCustom;
-    forceAddMode = forceAdd;
-    
-    console.log(`[予約追加] 時間選択: ${time}, カスタム: ${isCustom}, 強制: ${forceAdd}`);
-}
-
-// カスタム時間入力モーダル（改善版）
-function openCustomTimeModal(dayReservations) {
-    // シンプルで使いやすい時間入力
-    const timeInput = document.createElement('input');
-    timeInput.type = 'time';
-    timeInput.style.cssText = `
-        padding: 12px;
-        border: 2px solid #6c5ce7;
-        border-radius: 8px;
-        background-color: #ffffff;
-        color: #333;
-        font-size: 18px;
-        font-weight: bold;
-        text-align: center;
-        width: 150px;
-        margin: 10px;
-        box-shadow: 0 2px 4px rgba(108, 92, 231, 0.2);
-    `;
-    
-    // 現在時刻を初期値として設定
-    const now = new Date();
-    const currentTime = now.toTimeString().substr(0, 5);
-    timeInput.value = currentTime;
-    
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1001;
-    `;
-    
-    const modalContent = document.createElement('div');
-    modalContent.style.cssText = `
-        background-color: #3a3a3a;
-        padding: 30px;
-        border-radius: 12px;
-        text-align: center;
-        border: 2px solid #6c5ce7;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-        max-width: 400px;
-        width: 90%;
-    `;
-    
-    modalContent.innerHTML = `
-        <h3 style="color: #6c5ce7; margin-bottom: 20px; font-size: 1.5em;">
-            ⏰ カスタム時間設定
-        </h3>
-        <p style="color: #ffffff; margin-bottom: 20px; line-height: 1.5;">
-            任意の時間を設定できます<br>
-            <small style="color: #ccc;">※既存予約がある場合は強制追加されます</small>
-        </p>
-    `;
-    
-    modalContent.appendChild(timeInput);
-    
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.cssText = `
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        margin-top: 25px;
-    `;
-    
-    const confirmBtn = document.createElement('button');
-    confirmBtn.textContent = '設定';
-    confirmBtn.style.cssText = `
-        background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-        color: #ffffff;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 14px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
-    `;
-    
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = 'キャンセル';
-    cancelBtn.style.cssText = `
-        background-color: #6c757d;
-        color: #ffffff;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 14px;
-        transition: all 0.3s ease;
-    `;
-    
-    // ホバー効果
-    confirmBtn.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-2px)';
-        this.style.boxShadow = '0 6px 16px rgba(108, 92, 231, 0.4)';
-    });
-    
-    confirmBtn.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateY(0)';
-        this.style.boxShadow = '0 4px 12px rgba(108, 92, 231, 0.3)';
-    });
-    
-    confirmBtn.addEventListener('click', function() {
-        const customTime = timeInput.value;
-        if (customTime) {
-            // 重複チェック
-            const conflictReservation = dayReservations.find(r => r.Time === customTime);
-            if (conflictReservation) {
-                const customerName = conflictReservation['Name-f'] || '名前なし';
-                const confirmMessage = `⚠️ この時間は既に予約があります。\n\n${customTime} - ${customerName}\n\n管理者権限で重複追加しますか？`;
-                
-                if (confirm(confirmMessage)) {
-                    selectTimeSlot(customTime, null, true, true);
-                }
-            } else {
-                selectTimeSlot(customTime, null, true, false);
-            }
-        }
-        document.body.removeChild(modal);
-    });
-    
-    cancelBtn.addEventListener('click', function() {
-        document.body.removeChild(modal);
-    });
-    
-    // Enterキーで確定
-    timeInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            confirmBtn.click();
-        }
-    });
-    
-    // Escapeキーでキャンセル
-    document.addEventListener('keydown', function escapeHandler(e) {
-        if (e.key === 'Escape' && document.body.contains(modal)) {
-            document.body.removeChild(modal);
-            document.removeEventListener('keydown', escapeHandler);
-        }
-    });
-    
-    buttonContainer.appendChild(confirmBtn);
-    buttonContainer.appendChild(cancelBtn);
-    modalContent.appendChild(buttonContainer);
-    modal.appendChild(modalContent);
-    document.body.appendChild(modal);
-    
-    // 入力フィールドにフォーカス
-    setTimeout(() => timeInput.focus(), 100);
 }
 
 // 電話番号のバリデーション
@@ -868,10 +333,17 @@ function validateEmail(email) {
     return emailRegex.test(email);
 }
 
-// 人数のバリデーション（新規追加）
+// 人数のバリデーション
 function validatePeopleCount(peopleCount) {
     const count = parseInt(peopleCount);
     return !isNaN(count) && count > 0 && count <= 100;
+}
+
+// 時間のバリデーション
+function validateTime(timeString) {
+    if (!timeString) return false;
+    const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5]?[0-9])$/;
+    return timeRegex.test(timeString);
 }
 
 // 予約番号生成
@@ -879,7 +351,7 @@ function generateReservationNumber() {
     return Math.floor(Math.random() * 90000000) + 10000000;
 }
 
-// 予約追加処理（重複処理防止版・人数対応版）
+// 予約追加処理（重複処理防止版・シンプル版）
 async function handleAddReservation() {
     console.log('[予約追加] 予約追加処理開始');
     
@@ -891,26 +363,27 @@ async function handleAddReservation() {
     
     isProcessingReservation = true;
     
-    // フォームの値を取得（人数フィールドを追加）
+    // フォームの値を取得
     const date = addReservationDateInput ? addReservationDateInput.value : '';
+    const time = addReservationTimeInput ? addReservationTimeInput.value : '';
     const name = addReservationNameInput ? addReservationNameInput.value.trim() : '';
     const phone = addReservationPhoneInput ? addReservationPhoneInput.value.trim() : '';
     const email = addReservationEmailInput ? addReservationEmailInput.value.trim() : '';
     const menuName = addReservationMenuSelect ? addReservationMenuSelect.value : '';
-    const peopleCount = addReservationPeopleInput ? addReservationPeopleInput.value.trim() : '1'; // 人数を取得
+    const peopleCount = addReservationPeopleInput ? addReservationPeopleInput.value.trim() : '1';
     
     console.log('[予約追加] フォーム値確認:', {
         date: date,
+        time: time,
         name: name,
         phone: phone,
         email: email,
         menuName: menuName,
-        peopleCount: peopleCount, // 人数をログに追加
-        selectedTimeSlot: selectedTimeSlot
+        peopleCount: peopleCount
     });
     
-    // バリデーション（人数チェックを追加）
-    if (!date || !name || !menuName || !selectedTimeSlot || !peopleCount) {
+    // バリデーション
+    if (!date || !time || !name || !menuName || !peopleCount) {
         alert('必須項目をすべて入力してください。\n（電話番号・メールアドレスは任意です）');
         isProcessingReservation = false;
         return;
@@ -924,7 +397,14 @@ async function handleAddReservation() {
         return;
     }
     
-    // 人数バリデーション（新規追加）
+    // 時間形式チェック
+    if (!validateTime(time)) {
+        alert('時間の形式が正しくありません（HH:MM形式で入力してください）');
+        isProcessingReservation = false;
+        return;
+    }
+    
+    // 人数バリデーション
     if (!validatePeopleCount(peopleCount)) {
         alert('人数は1〜100の数値で入力してください。');
         isProcessingReservation = false;
@@ -944,10 +424,9 @@ async function handleAddReservation() {
         return;
     }
     
-    // 選択されたメニューの詳細を取得（修正版 - フォールバック対応）
+    // 選択されたメニューの詳細を取得
     let selectedMenu = null;
     
-    // currentMenusから取得を試行
     if (currentMenus && typeof currentMenus === 'object') {
         selectedMenu = currentMenus[menuName];
     }
@@ -956,7 +435,6 @@ async function handleAddReservation() {
     if (!selectedMenu) {
         console.warn('[予約追加] currentMenusからメニューが見つかりません。フォールバックデータを使用');
         
-        // デフォルトメニューデータ（実際の運用では事前に定義しておく）
         const fallbackMenus = {
             'VIP席': { worktime: 4, fare: 8000 },
             'カウンター席': { worktime: 2, fare: 5000 },
@@ -966,7 +444,6 @@ async function handleAddReservation() {
         selectedMenu = fallbackMenus[menuName];
         
         if (!selectedMenu) {
-            // それでも見つからない場合はデフォルト値
             selectedMenu = {
                 worktime: 4,
                 fare: 5000
@@ -992,54 +469,34 @@ async function handleAddReservation() {
         let mailField = email || '管理者追加';
         let phoneField = phone || '管理者追加';
         
-        if (forceAddMode && isCustomTime) {
-            if (!email) mailField = '管理者強制追加（カスタム時間）';
-            if (!phone) phoneField = '管理者強制追加（カスタム時間・重複）';
-        } else if (forceAddMode) {
-            if (!email) mailField = '管理者強制追加（重複時間）';
-            if (!phone) phoneField = '管理者強制追加（重複時間）';
-        } else if (isCustomTime) {
-            if (!email) mailField = '管理者追加（カスタム時間）';
-            if (!phone) phoneField = '管理者追加（カスタム時間）';
-        }
-        
-        // 予約データを作成（人数をWorkTimeとして保存）
+        // 予約データを作成
         const reservationData = {
             reservationNumber: reservationNumber,
             Menu: menuName,
             "Name-f": name,
             "Name-s": phoneField,
-            Time: selectedTimeSlot,
-            WorkTime: parseInt(peopleCount), // 入力された人数をWorkTimeとして保存
+            Time: time,
+            WorkTime: parseInt(peopleCount),
             date: date,
             mail: mailField,
             states: 0,
             adminAdded: true,
-            forceAdd: forceAddMode,
-            customTime: isCustomTime,
             addedAt: new Date().toISOString()
         };
         
         console.log('[予約追加] 予約データ:', reservationData);
         
-        // API呼び出し（修正版 - レスポンステキストを先に取得）
+        // API呼び出し
         const response = await fetch(`${API_BASE_URL}/reservations`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-Admin-Override': 'true',
-                'X-Force-Add': forceAddMode ? 'true' : 'false',
-                'X-Custom-Time': isCustomTime ? 'true' : 'false',
-                'X-Admin-User': currentUser || 'admin'
+                'X-Admin-Override': 'true'
             },
             body: JSON.stringify({
                 ...reservationData,
-                adminOverride: true,
-                forceAdd: forceAddMode,
-                customTime: isCustomTime,
-                bypassDateRestriction: true,
-                bypassTimeRestriction: true
+                adminOverride: true
             })
         });
         
@@ -1066,32 +523,17 @@ async function handleAddReservation() {
         }
         
         if (result.success) {
-            // 成功メッセージを準備（人数情報を追加）
-            let successMessage = '';
-            let successIcon = '';
-            
-            if (forceAddMode && isCustomTime) {
-                successIcon = '🛡️⏰';
-                successMessage = `管理者権限で強制追加しました\n（カスタム時間・重複対応）\n\n✅ 予約番号: ${reservationNumber}\n⏰ 時間: ${selectedTimeSlot}\n👤 お客様: ${name}\n👥 人数: ${peopleCount}人`;
-            } else if (forceAddMode) {
-                successIcon = '🛡️';
-                successMessage = `管理者権限で強制追加しました\n（重複時間対応）\n\n✅ 予約番号: ${reservationNumber}\n⏰ 時間: ${selectedTimeSlot}\n👤 お客様: ${name}\n👥 人数: ${peopleCount}人`;
-            } else if (isCustomTime) {
-                successIcon = '⏰';
-                successMessage = `カスタム時間で予約を追加しました\n\n✅ 予約番号: ${reservationNumber}\n⏰ 時間: ${selectedTimeSlot}\n👤 お客様: ${name}\n👥 人数: ${peopleCount}人`;
-            } else {
-                successIcon = '✅';
-                successMessage = `予約を追加しました\n\n✅ 予約番号: ${reservationNumber}\n⏰ 時間: ${selectedTimeSlot}\n👤 お客様: ${name}\n👥 人数: ${peopleCount}人`;
-            }
+            // 成功メッセージを準備
+            const successMessage = `✅ 予約を追加しました\n\n予約番号: ${reservationNumber}\n日時: ${date} ${time}\nお客様: ${name}\n人数: ${peopleCount}人\n座席: ${menuName}`;
             
             // 成功時のボタン表示
             if (submitAddReservationBtn) {
-                submitAddReservationBtn.textContent = `${successIcon} 追加完了！`;
+                submitAddReservationBtn.textContent = '✅ 追加完了！';
                 submitAddReservationBtn.style.backgroundColor = '#28a745';
                 submitAddReservationBtn.style.color = '#ffffff';
             }
             
-            // 成功メッセージを表示（1回のみ）
+            // 成功メッセージを表示
             setTimeout(() => {
                 alert(successMessage);
                 
@@ -1140,8 +582,6 @@ async function handleAddReservation() {
             errorMessage = '🔍 APIエンドポイントが見つかりません（404エラー）。\n📞 URL設定を確認してください。';
         } else if (error.message.includes('500')) {
             errorMessage = '⚠️ サーバー内部エラーが発生しました（500エラー）。\n⏰ しばらく時間をおいてから再度お試しください。';
-        } else if (error.message.includes('CORS')) {
-            errorMessage = '🔐 CORS（Cross-Origin Resource Sharing）エラーが発生しました。\n📞 サーバー設定を確認してください。';
         } else if (error.message) {
             errorMessage += '\n\n詳細: ' + error.message;
         }
@@ -1152,7 +592,7 @@ async function handleAddReservation() {
         // 送信ボタンを再有効化
         if (submitAddReservationBtn) {
             submitAddReservationBtn.disabled = false;
-            submitAddReservationBtn.textContent = '📝 予約追加';
+            submitAddReservationBtn.textContent = '予約追加';
             submitAddReservationBtn.style.backgroundColor = '#28a745';
             submitAddReservationBtn.style.cursor = 'pointer';
         }
