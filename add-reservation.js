@@ -405,35 +405,80 @@ async function handleDateChange() {
     await displayAvailableTimeSlots(selectedDate);
 }
 
-// 利用可能な時間スロットを表示
+// 利用可能な時間スロットを表示（エラーハンドリング改善版）
 async function displayAvailableTimeSlots(date) {
     if (!addReservationTimeslotsDiv) return;
     
     addReservationTimeslotsDiv.innerHTML = '<div style="color: #ffffff; text-align: center; padding: 10px;">時間を確認しています...</div>';
     
+    let dayReservations = [];
+    
     try {
-        // 既存の予約を取得
-        const response = await fetch(`${API_BASE_URL}/reservations`);
-        const allReservations = await response.json();
+        // 既存の予約を取得（エラーハンドリング強化）
+        const response = await fetch(`${API_BASE_URL}/reservations`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            },
+            // 5秒でタイムアウト
+            signal: AbortSignal.timeout(5000)
+        });
         
-        const dayReservations = Array.isArray(allReservations) ? 
-            allReservations.filter(r => r.date === date && r.states === 0) : [];
+        if (response.ok) {
+            const allReservations = await response.json();
+            dayReservations = Array.isArray(allReservations) ? 
+                allReservations.filter(r => r.date === date && r.states === 0) : [];
+            
+            console.log(`[予約追加] ${date}の既存予約: ${dayReservations.length}件`);
+        } else {
+            console.warn(`[予約追加] 予約データ取得失敗: HTTP ${response.status}`);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
         
+    } catch (error) {
+        console.warn('[予約追加] 予約データ取得エラー:', error.message);
+        
+        // エラーの種類に応じて処理を分岐
+        if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+            console.log('[予約追加] タイムアウト - オフラインモードで続行');
+        } else if (error.message.includes('Failed to fetch') || 
+                   error.message.includes('NetworkError') ||
+                   error.message.includes('ERR_INTERNET_DISCONNECTED')) {
+            console.log('[予約追加] ネットワークエラー - オフラインモードで続行');
+        } else {
+            console.log('[予約追加] その他のエラー - オフラインモードで続行');
+        }
+        
+        // ローカルのreservations配列から取得を試行
+        if (typeof reservations !== 'undefined' && Array.isArray(reservations)) {
+            dayReservations = reservations.filter(r => r.date === date && r.states === 0);
+            console.log(`[予約追加] ローカルデータから取得: ${dayReservations.length}件`);
+        } else {
+            console.log('[予約追加] ローカルデータなし - 空の状態で続行');
+            dayReservations = [];
+        }
+    }
+    
+    try {
         // 平日・土日祝の判定
         const isWeekend = isWeekendOrHoliday(date);
         const availableSlots = isWeekend ? timeSlots.weekend : timeSlots.weekday;
         
         addReservationTimeslotsDiv.innerHTML = '';
         
-        // 管理者通知メッセージを追加（改善版）
+        // 管理者通知メッセージを追加（オフライン対応版）
         const adminNoticeDiv = document.createElement('div');
+        const connectionStatus = dayReservations.length > 0 || (typeof reservations !== 'undefined' && reservations.length > 0) ? 
+            '' : '<br><small style="color: #ffc107;">⚠️ オフライン - 重複チェック無効</small>';
+        
         adminNoticeDiv.innerHTML = `
             <div style="background-color: #17a2b8; color: #ffffff; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; text-align: center; font-size: 14px;">
                 <strong>🛡️ 管理者モード</strong><br>
-                <small>予約済み時間も強制追加可能</small>
+                <small>予約済み時間も強制追加可能${connectionStatus}</small>
             </div>
         `;
         addReservationTimeslotsDiv.appendChild(adminNoticeDiv);
+        
         // 時間スロット用コンテナ
         const timeSlotsContainer = document.createElement('div');
         timeSlotsContainer.className = 'time-slots-grid';
@@ -444,14 +489,14 @@ async function displayAvailableTimeSlots(date) {
             margin-bottom: 15px;
         `;
         
-        // 時間スロットボタンを生成（改善版）
+        // 時間スロットボタンを生成（エラーハンドリング対応版）
         availableSlots.forEach(time => {
             const timeSlotBtn = document.createElement('button');
             timeSlotBtn.className = 'time-slot-btn admin-time-slot';
             timeSlotBtn.textContent = time;
             timeSlotBtn.type = 'button';
             
-            // 基本スタイル（小さくてスマート）
+            // 基本スタイル
             timeSlotBtn.style.cssText = `
                 background-color: #4a4a4a;
                 color: #ffffff;
@@ -499,6 +544,7 @@ async function displayAvailableTimeSlots(date) {
                     }
                 });
             } else {
+                // 空き時間のクリックイベント
                 timeSlotBtn.addEventListener('click', () => selectTimeSlot(time, timeSlotBtn, false, false));
                 
                 // ホバー効果
@@ -524,7 +570,7 @@ async function displayAvailableTimeSlots(date) {
         
         addReservationTimeslotsDiv.appendChild(timeSlotsContainer);
         
-        // カスタム時間ボタンを追加（改善版）
+        // カスタム時間ボタンを追加
         const customTimeBtn = document.createElement('button');
         customTimeBtn.className = 'time-slot-btn custom-time-btn';
         customTimeBtn.innerHTML = `
@@ -565,9 +611,48 @@ async function displayAvailableTimeSlots(date) {
         customTimeBtn.addEventListener('click', () => openCustomTimeModal(dayReservations));
         addReservationTimeslotsDiv.appendChild(customTimeBtn);
         
+        console.log('[予約追加] 時間スロット表示完了');
+        
     } catch (error) {
-        console.error('Error loading time slots:', error);
-        addReservationTimeslotsDiv.innerHTML = '<div style="color: #dc3545; text-align: center; padding: 20px;">時間スロットの取得に失敗しました</div>';
+        console.error('[予約追加] 時間スロット表示エラー:', error);
+        
+        // フォールバック：カスタム時間入力のみ表示
+        addReservationTimeslotsDiv.innerHTML = `
+            <div style="color: #ffc107; text-align: center; padding: 15px; background-color: #444; border-radius: 8px; margin-bottom: 15px;">
+                <strong>⚠️ オフラインモード</strong><br>
+                <small>予約データを取得できませんが、時間入力は可能です</small>
+            </div>
+            <div style="background-color: #3a3a3a; padding: 20px; border-radius: 8px; border: 2px solid #6c5ce7;">
+                <div style="color: #6c5ce7; font-weight: bold; margin-bottom: 15px; text-align: center; font-size: 16px;">
+                    ⏰ 時間を入力してください
+                </div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                    <input type="time" id="fallback-time-input" 
+                           style="padding: 12px; border: 2px solid #6c5ce7; border-radius: 8px; background-color: #ffffff; color: #333; font-size: 18px; font-weight: bold; text-align: center; width: 150px;"
+                           value="${new Date().toTimeString().substr(0, 5)}">
+                    <button type="button" onclick="handleFallbackTimeSet()" 
+                            style="background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: #ffffff; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px;">
+                        時間を設定
+                    </button>
+                </div>
+                <div id="fallback-selected-time" style="text-align: center; margin-top: 15px; color: #28a745; font-weight: bold; font-size: 16px;">
+                    <!-- 選択された時間がここに表示されます -->
+                </div>
+            </div>
+        `;
+        
+        // フォールバック用のグローバル関数を定義
+        window.handleFallbackTimeSet = function() {
+            const timeInput = document.getElementById('fallback-time-input');
+            const display = document.getElementById('fallback-selected-time');
+            
+            if (timeInput && timeInput.value) {
+                selectTimeSlot(timeInput.value, null, true, false);
+                if (display) {
+                    display.innerHTML = `✅ 選択された時間: ${timeInput.value}`;
+                }
+            }
+        };
     }
 }
 
