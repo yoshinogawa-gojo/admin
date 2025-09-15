@@ -218,18 +218,30 @@
         </div>
     </div>
 
-    <!-- 新しい予約追加モーダル（人数入力フィールド追加版） -->
+    <!-- 改善された予約追加モーダル -->
     <div id="add-reservation-modal" class="modal">
         <div class="modal-content">
-            <h3>新規予約追加</h3>
+            <h3>管理者による予約追加</h3>
             <div class="add-reservation-form">
                 <div class="form-group">
-                    <label for="add-reservation-date">予約日:</label>
+                    <label for="add-reservation-date">
+                        <span style="color: #ff6b35;">*</span> 予約日:
+                    </label>
                     <input type="date" id="add-reservation-date" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="add-reservation-name">お名前:</label>
+                    <label for="add-reservation-time">
+                        <span style="color: #ff6b35;">*</span> 時間:
+                    </label>
+                    <input type="time" id="add-reservation-time" required 
+                           style="width: 100%; padding: 12px 15px; border: 2px solid #555; border-radius: 8px; background-color: #4a4a4a; color: #ffffff; font-size: 16px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="add-reservation-name">
+                        <span style="color: #ff6b35;">*</span> お名前:
+                    </label>
                     <input type="text" id="add-reservation-name" placeholder="例：山田太郎" required>
                 </div>
 
@@ -244,33 +256,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="add-reservation-menu">座席タイプ:</label>
+                    <label for="add-reservation-menu">
+                        <span style="color: #ff6b35;">*</span> 座席タイプ:
+                    </label>
                     <select id="add-reservation-menu" required>
                         <option value="">座席タイプを選択してください。</option>
                     </select>
                 </div>
 
-                <!-- 人数入力フィールドを追加 -->
                 <div class="form-group">
-                    <label for="add-reservation-people">人数:</label>
+                    <label for="add-reservation-people">
+                        <span style="color: #ff6b35;">*</span> 人数:
+                    </label>
                     <input type="number" id="add-reservation-people" min="1" max="100" value="1" required 
                            placeholder="利用人数を入力してください" 
                            style="width: 100%; padding: 12px 15px; border: 2px solid #555; border-radius: 8px; background-color: #4a4a4a; color: #ffffff; font-size: 16px;">
                 </div>
 
-                <div class="form-group">
-                    <label>時間:</label>
-                    <div id="add-reservation-timeslots" class="time-slots-grid">
-                        <!-- 時間スロットは動的に生成されます -->
-                    </div>
-                </div>
-
                 <div class="reservation-notes">
-                    <h4>予約について</h4>
+                    <h4>ℹ️ 注意事項</h4>
                     <ul>
-                        <li>管理者による手動予約追加です</li>
-                        <li>お名前と人数は必須、電話番号・メールアドレスは任意です</li>
-                        <li>人数は座席タイプの収容人数と関係なく自由に設定できます</li>
+                        <li>既存の予約と重複する時間でも追加可能です</li>
+                        <li><span style="color: #ff6b35;">*</span> の付いた項目は必須入力です</li>
+                        <li>電話番号・メールアドレスは任意項目です</li>
                         <li>予約番号は自動生成されます</li>
                     </ul>
                 </div>
@@ -328,7 +336,7 @@
     <script src="main-features.js"></script>
     <script src="calendar.js"></script>
     <script src="modals.js"></script>
-    <script src="add-reservation.js"></script>
+    <script src="improved-add-reservation.js"></script>
     <script src="reservation-blocking.js"></script>
 </body>
 </html>
